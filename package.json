@@ -1,0 +1,24 @@
+{
+  "name": "cordis-interactive-tutorial",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "An interactive, visual walkthrough of the Cordis plugin framework - watch a real Cordis Context register plugins, resolve services, and dispatch events, chapter by chapter.",
+  "scripts": {
+    "dev": "bash scripts/server_start.sh",
+    "dev:daemon": "bash scripts/server_start_daemon.sh",
+    "stop": "bash scripts/server_stop.sh",
+    "status": "bash scripts/server_status.sh",
+    "restart": "bash scripts/server_restart.sh",
+    "build": "pnpm --filter @cordis-tutorial/web build",
+    "start": "pnpm --filter @cordis-tutorial/server start",
+    "type-check": "pnpm -r type-check"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  },
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=18"
+  }
+}

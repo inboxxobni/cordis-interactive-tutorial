@@ -1,3 +1,6 @@
+# macOS
+.DS_Store
+
 # Logs
 logs
 *.log
@@ -141,3 +144,14 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# server_*.sh runtime state (pidfiles, logs)
+.run/
+.server.pid
+.server.log
+
+# Agent teaching workspace (single shared sandbox, matching aicodingagent-ts)
+/workspace/
+
+# Real, on-disk archives (workspace files + paired history bundles)
+/.archives/
