@@ -1,17 +1,14 @@
 import { useEffect, useRef, useState } from "react";
+import { Archive, Download, History, Pause, Play, RotateCcw, Upload } from "lucide-react";
 import type { RecordedSession, WorkspaceBundle } from "@cordis-tutorial/shared";
 import { useStore } from "../store";
 
 /**
- * History / replay + on-disk archives, ported from aicodingagent-ts's
- * HistoryPanel.tsx: continuous auto-recording (no manual "save session"
- * step - see store.ts's apply()), step-through replay with a scrubbable
- * timeline, and a combined archive (real workspace files + the paired event
- * history bundled together, not two separate save flows).
- *
- * Export/import work on that same combined shape (WorkspaceBundle: files +
- * history together) - a single portable .json file, not two separate
- * exports. There is no reason to ever export one without the other.
+ * Continuity, unified: replay + on-disk archives + portable bundles +
+ * clear-workspace, all in one place - not four separately-labeled panels a
+ * user has to mentally stitch together (the design brief's own complaint
+ * about the old layout). Logic ported as-is from the former
+ * HistoryPanel.tsx; only the composition/markup changed.
  */
 function downloadBundle(bundle: WorkspaceBundle): void {
   const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: "application/json" });
@@ -42,7 +39,7 @@ function sessionSummary(session: RecordedSession): string {
   return parts.join(" · ");
 }
 
-export function HistoryPanel() {
+export function SessionsPanel() {
   const sessions = useStore((s) => s.historySessions);
   const current = useStore((s) => s.currentSession);
   const replaying = useStore((s) => s.replaying);
@@ -57,6 +54,9 @@ export function HistoryPanel() {
   const listArchives = useStore((s) => s.listArchives);
   const archiveCurrent = useStore((s) => s.archiveCurrent);
   const loadArchive = useStore((s) => s.loadArchive);
+  const resetWorkspace = useStore((s) => s.resetWorkspace);
+  const chapterRunning = useStore((s) => s.chapterRunning);
+  const agentRunning = useStore((s) => s.agentRunning);
   const [playing, setPlaying] = useState(false);
   const [archiveTitle, setArchiveTitle] = useState("");
   const [archiveMessage, setArchiveMessage] = useState("");
@@ -83,50 +83,87 @@ export function HistoryPanel() {
   const total = current?.events.length ?? 0;
 
   return (
-    <div className="side-panel history-panel">
-      <div className="panel-head">
-        <span className="panel-title">
-          <span className="dot" /> history / replay
-        </span>
-        <span className="panel-meta">{sessions.length} sessions</span>
+    <div className="continuity">
+      <div className="panel-heading compact">
+        <div>
+          <span className="eyebrow">FILES + EVENTS</span>
+          <h2>Session continuity</h2>
+        </div>
       </div>
 
-      <div className="history-toolbar">
-        {!replaying ? (
-          <span className="hint">Live events are recorded automatically. Export/import bundle files + history together - not separately.</span>
-        ) : (
-          <>
-            <button className="btn" onClick={() => replayStep(-1)} disabled={index < 0}>
-              ← prev
-            </button>
-            <button className="btn primary" onClick={() => setPlaying((v) => !v)}>
-              {playing ? "❚❚ pause" : "▶ play"}
-            </button>
-            <button className="btn" onClick={() => replayStep(1)} disabled={!current || index >= total - 1}>
-              next →
-            </button>
-            <span className="panel-meta">
-              {Math.max(0, index + 1)} / {total}
-            </span>
+      <div className="replay-card">
+        <div className="replay-card-head">
+          <History />
+          <span>
+            <strong>{current ? sessionSummary(current) : "No live session yet"}</strong>
+            <small>{replaying ? `Replay isolated · checkpoint ${Math.max(0, index + 1)} of ${total}` : "Live events are recorded automatically"}</small>
+          </span>
+        </div>
+        <div className="timeline">
+          <i style={{ width: replaying && total > 0 ? `${((index + 1) / total) * 100}%` : "100%" }} />
+        </div>
+        <div className="replay-controls">
+          <button className="btn icon-btn" disabled={!replaying || index < 0} onClick={() => replayStep(-1)}>
+            <RotateCcw size={13} />
+          </button>
+          <button
+            className="btn primary icon-btn"
+            disabled={!current || current.events.length === 0}
+            onClick={() => {
+              if (!replaying) replaySession(sessions.findIndex((s) => s.id === current?.id));
+              setPlaying((v) => !v);
+            }}
+          >
+            {playing ? <Pause size={13} /> : <Play size={13} />}
+          </button>
+          {replaying && (
             <button className="btn ghost" onClick={exitReplay}>
               exit replay
             </button>
-          </>
-        )}
-        <span className="spacer" />
+          )}
+          <span>
+            {Math.max(0, index + 1)} / {total}
+          </span>
+        </div>
+      </div>
+
+      <div className="continuity-actions">
         <button
-          className="btn ghost"
-          title="Download the current workspace files + history together, as one .json file"
+          className="btn outline"
+          disabled={archiving || !current || current.events.length === 0}
+          onClick={() => {
+            setArchiveMessage("Archiving current workspace and history…");
+            archiveCurrent(archiveTitle);
+            setArchiveTitle("");
+            window.setTimeout(() => setArchiveMessage(""), 2000);
+          }}
+        >
+          <Archive size={14} /> Archive checkpoint
+        </button>
+        <button
+          className="btn outline"
+          disabled={!current || current.events.length === 0}
           onClick={() => {
             const bundle = exportBundle();
             if (bundle) downloadBundle(bundle);
           }}
-          disabled={!current || current.events.length === 0}
         >
-          export bundle
+          <Download size={14} /> Export bundle
         </button>
-        <button className="btn ghost" title="Restore files + history from a bundle .json file" onClick={() => fileRef.current?.click()}>
-          import bundle
+        <button className="btn outline" onClick={() => fileRef.current?.click()}>
+          <Upload size={14} /> Import bundle
+        </button>
+        <button
+          className="btn outline danger"
+          disabled={chapterRunning || agentRunning}
+          title="Wipe the real workspace files back to the starter state - export/archive first if you want to keep them"
+          onClick={() => {
+            if (window.confirm("Clear the workspace back to the starter files? Export a bundle or archive it first if you want to keep the current files.")) {
+              resetWorkspace();
+            }
+          }}
+        >
+          <RotateCcw size={14} /> Clear workspace
         </button>
         <input
           ref={fileRef}
@@ -144,6 +181,7 @@ export function HistoryPanel() {
           }}
         />
       </div>
+      {archiveMessage && <div className="archive-message">{archiveMessage}</div>}
 
       <div className="archive-section">
         <div className="archive-head">
@@ -155,28 +193,9 @@ export function HistoryPanel() {
             <button className="btn ghost" onClick={listArchives}>
               refresh
             </button>
-            <input
-              className="archive-title-input"
-              type="text"
-              placeholder="title"
-              value={archiveTitle}
-              onChange={(e) => setArchiveTitle(e.target.value)}
-            />
-            <button
-              className="btn primary"
-              disabled={archiving || !current || current.events.length === 0}
-              onClick={() => {
-                setArchiveMessage("Archiving current workspace and history…");
-                archiveCurrent(archiveTitle);
-                setArchiveTitle("");
-                window.setTimeout(() => setArchiveMessage(""), 2000);
-              }}
-            >
-              archive current
-            </button>
+            <input className="archive-title-input" type="text" placeholder="title" value={archiveTitle} onChange={(e) => setArchiveTitle(e.target.value)} />
           </div>
         </div>
-        {archiveMessage && <div className="archive-message">{archiveMessage}</div>}
         <div className="archive-list">
           {archives.length === 0 ? (
             <div className="hint">No archives yet. Run a chapter or the agent, then archive it.</div>
@@ -207,7 +226,11 @@ export function HistoryPanel() {
         </div>
       </div>
 
-      <div className="history-body">
+      <div className="history-section">
+        <div className="history-section-head">
+          <strong>past sessions</strong>
+          <span className="hint">{sessions.length} recorded</span>
+        </div>
         <div className="history-list">
           {sessions.length === 0 && <div className="ws-empty">Run a chapter or the agent once and every event will be replayable here.</div>}
           {sessions.map((session, i) => (

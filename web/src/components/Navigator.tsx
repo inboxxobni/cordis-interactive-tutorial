@@ -1,10 +1,13 @@
-import { PARTS, type ChapterInfo } from "@cordis-tutorial/shared";
+import { PARTS, VOLUMES, type ChapterInfo } from "@cordis-tutorial/shared";
 import { useStore } from "../store";
 
 /**
  * The whole curriculum, always visible, always in the same place - a
  * permanent sidebar, not a button you have to discover and click to find
- * out navigation exists at all.
+ * out navigation exists at all. Grouped into collapsible Volumes (open by
+ * default - collapsible for tidiness, never hidden-by-default), the same
+ * native <details>/<summary> pattern SettingsPanel.tsx already uses for its
+ * per-provider sections, not a second collapsible mechanism.
  */
 export function Navigator() {
   const chapters = useStore((s) => s.chapters);
@@ -21,30 +24,37 @@ export function Navigator() {
   }
 
   return (
-    <nav className="navigator">
-      <h2>All chapters</h2>
-      {PARTS.map((part) => {
-        const list = (byPart.get(part.id) ?? []).sort((a, b) => a.index - b.index);
-        if (list.length === 0) return null;
+    <nav className="navigator" aria-label="Course chapters">
+      {VOLUMES.map((volume) => {
+        const parts = PARTS.filter((p) => p.volume === volume.id);
         return (
-          <div key={part.id} className="nav-part">
-            <h3>{part.title}</h3>
-            <ol>
-              {list.map((c) => (
-                <li key={c.id} className={c.id === activeChapter ? "active" : ""}>
-                  <button
-                    disabled={!connected || (chapterRunning && c.id !== activeChapter)}
-                    title={c.summary}
-                    onClick={() => runChapter(c.id)}
-                  >
-                    <span className="nav-index">{c.index}</span>
-                    <span className="nav-title">{c.title}</span>
-                    {!c.runnable && <span className="nav-badge">ref</span>}
-                  </button>
-                </li>
-              ))}
-            </ol>
-          </div>
+          <details key={volume.id} className="nav-volume" open>
+            <summary>{volume.title}</summary>
+            {parts.map((part) => {
+              const list = (byPart.get(part.id) ?? []).sort((a, b) => a.index - b.index);
+              if (list.length === 0) return null;
+              return (
+                <div key={part.id} className="nav-part">
+                  <h3>{part.title}</h3>
+                  <ol>
+                    {list.map((c) => (
+                      <li key={c.id} className={c.id === activeChapter ? "active" : ""}>
+                        <button
+                          disabled={!connected || (chapterRunning && c.id !== activeChapter)}
+                          title={c.summary}
+                          onClick={() => runChapter(c.id)}
+                        >
+                          <span className="nav-index">{c.index}</span>
+                          <span className="nav-title">{c.title}</span>
+                          {!c.runnable && <span className="nav-badge">ref</span>}
+                        </button>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              );
+            })}
+          </details>
         );
       })}
     </nav>

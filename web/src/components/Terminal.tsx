@@ -11,7 +11,7 @@ import { useStore } from "../store";
  * the agent's generated Cordis plugins directly, the same files the file
  * tree and mount_plugin see, not a simulated console.
  */
-export function TerminalPanel() {
+export function TerminalPanel({ visible = true }: { visible?: boolean }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const termRef = useRef<XTerm | null>(null);
   const fitRef = useRef<FitAddon | null>(null);
@@ -23,8 +23,18 @@ export function TerminalPanel() {
   const startTerminal = useStore((s) => s.startTerminal);
   const stopTerminal = useStore((s) => s.stopTerminal);
 
+  // xterm.js measures its character-cell size from the DOM at the moment
+  // `term.open()` runs, and gets that measurement permanently wrong if the
+  // container is `display:none` at the time (a well-known xterm.js
+  // limitation) - which it always was here, because this panel now lives in
+  // a workbench tab that's mounted (for scrollback continuity across tab
+  // switches) before it's ever the visible tab. The real symptom was
+  // exactly this: the panel rendered, but typed input never registered,
+  // because the hidden helper textarea xterm uses to capture keystrokes was
+  // sized against a zero-size box. Fix: don't call `open()` until this
+  // panel is visible for real, the first time - not on React mount.
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!visible || termRef.current || !containerRef.current) return;
     const term = new XTerm({
       convertEol: true,
       fontSize: 12,
@@ -38,8 +48,13 @@ export function TerminalPanel() {
     fit.fit();
     termRef.current = term;
     fitRef.current = fit;
+    term.focus();
 
     term.onData((data) => useStore.getState().sendTerminalInput(data));
+
+    if (useStore.getState().connected && !useStore.getState().terminalRunning) {
+      useStore.getState().startTerminal(term.cols, term.rows);
+    }
 
     const onResize = () => {
       if (!fitRef.current || !termRef.current) return;
@@ -50,23 +65,36 @@ export function TerminalPanel() {
 
     return () => {
       window.removeEventListener("resize", onResize);
-      term.dispose();
+    };
+  }, [visible]);
+
+  useEffect(() => {
+    return () => {
+      termRef.current?.dispose();
       termRef.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Starting on mount alone races the WebSocket: the socket is usually
-  // still CONNECTING when this component first renders, so `terminal_start`
-  // would silently drop (TutorialSocket.send() no-ops until OPEN) - the same
-  // class of race this project already hit with the server's own ws.on
-  // listener. Re-fire once `connected` actually flips true instead.
+  // Starting the very first time races the WebSocket (handled above once
+  // the terminal actually opens) - but if `connected` flips from false to
+  // true AFTER the terminal already opened (e.g. a reconnect), re-fire here
+  // too, the same race this project already hit with the server's own
+  // ws.on listener.
   useEffect(() => {
     if (connected && !terminalRunning && termRef.current) {
       startTerminal(termRef.current.cols, termRef.current.rows);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connected]);
+
+  // Re-fit on every later visibility change too (switching back to this
+  // tab after the window itself was resized while it was hidden).
+  useEffect(() => {
+    if (!visible || !fitRef.current || !termRef.current) return;
+    fitRef.current.fit();
+    termRef.current.focus();
+    useStore.getState().resizeTerminal(termRef.current.cols, termRef.current.rows);
+  }, [visible]);
 
   useEffect(() => {
     const chunk = useStore.getState().terminalChunk;
@@ -84,15 +112,11 @@ export function TerminalPanel() {
   }, []);
 
   return (
-    <div className="side-panel terminal-panel">
-      <div className="panel-head">
-        <span className="panel-title">
-          <span className="dot" /> terminal
-        </span>
-        <span className="panel-meta">{terminalRunning ? terminalShell ?? "running" : "stopped"}</span>
-      </div>
+    <div className="terminal-panel">
       <div className="terminal-toolbar">
-        <span className="hint">Real shell, cwd&apos;d at the real workspace directory.</span>
+        <span className="hint">
+          Real shell, cwd&apos;d at the real workspace directory · {terminalRunning ? terminalShell ?? "running" : "stopped"}
+        </span>
         <span className="spacer" />
         {terminalRunning ? (
           <button className="btn ghost danger" onClick={stopTerminal}>

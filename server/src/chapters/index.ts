@@ -15,6 +15,15 @@ import { chapter as chapter12 } from './12-built-in-services.js'
 import { chapter as chapter13 } from './13-three-role-capability.js'
 import { chapter as chapter14 } from './14-llm-adapters.js'
 import { chapter as chapter15 } from './15-runtime-inspection-and-install.js'
+import { chapter as chapter16 } from './16-what-is-an-agent.js'
+import { chapter as chapter17 } from './17-the-loop.js'
+import { chapter as chapter18 } from './18-tools.js'
+import { chapter as chapter19 } from './19-context-window.js'
+import { chapter as chapter20 } from './20-cache-and-compact.js'
+import { chapter as chapter21 } from './21-system-prompt.js'
+import { chapter as chapter22 } from './22-providers.js'
+import { chapter as chapter23 } from './23-the-harness.js'
+import { chapter as chapter24 } from './24-this-app.js'
 
 export const CHAPTER_RUNNERS: Record<ChapterId, Chapter> = {
   '01-first-plugin': chapter01,
@@ -32,4 +41,13 @@ export const CHAPTER_RUNNERS: Record<ChapterId, Chapter> = {
   '13-three-role-capability': chapter13,
   '14-llm-adapters': chapter14,
   '15-runtime-inspection-and-install': chapter15,
+  '16-what-is-an-agent': chapter16,
+  '17-the-loop': chapter17,
+  '18-tools': chapter18,
+  '19-context-window': chapter19,
+  '20-cache-and-compact': chapter20,
+  '21-system-prompt': chapter21,
+  '22-providers': chapter22,
+  '23-the-harness': chapter23,
+  '24-this-app': chapter24,
 }

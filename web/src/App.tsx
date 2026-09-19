@@ -1,59 +1,44 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useStore } from "./store";
-import { TopBar } from "./components/TopBar";
-import { Navigator } from "./components/Navigator";
-import { AgentConsole } from "./components/AgentConsole";
-import { PluginGraph } from "./components/PluginGraph";
-import { EventLog } from "./components/EventLog";
-import { Theory } from "./components/Theory";
-import { SourceView } from "./components/SourceView";
-import { Workspace } from "./components/Workspace";
-import { HistoryPanel } from "./components/HistoryPanel";
-import { TerminalPanel } from "./components/Terminal";
+import { Header, type ThemeMode } from "./components/Header";
+import { CurriculumRail } from "./components/CurriculumRail";
+import { Workbench } from "./components/Workbench";
+import { InspectorRail } from "./components/InspectorRail";
+
+export type UiMode = "learn" | "build";
+
+const THEME_KEY = "cordis-tutorial:theme";
 
 export function App() {
   const connect = useStore((s) => s.connect);
-  const activeChapter = useStore((s) => s.activeChapter);
+  const [theme, setTheme] = useState<ThemeMode>(() => (localStorage.getItem(THEME_KEY) as ThemeMode | null) ?? "system");
+  const [mode, setMode] = useState<UiMode>("learn");
 
   useEffect(() => {
     connect();
   }, [connect]);
 
+  useEffect(() => {
+    localStorage.setItem(THEME_KEY, theme);
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const apply = () => {
+      const dark = theme === "dark" || (theme === "system" && media.matches);
+      document.documentElement.classList.toggle("dark", dark);
+    };
+    apply();
+    if (theme === "system") {
+      media.addEventListener("change", apply);
+      return () => media.removeEventListener("change", apply);
+    }
+  }, [theme]);
+
   return (
-    <div className="app">
-      <TopBar />
-      <div className="layout">
-        <Navigator />
-        <aside>
-          <AgentConsole />
-        </aside>
-        <main>
-          <section className="panel">
-            <h2>Plugin canvas</h2>
-            <PluginGraph />
-          </section>
-          {activeChapter && (
-            <section className="panel">
-              <h2>What this chapter teaches</h2>
-              <Theory chapter={activeChapter} />
-            </section>
-          )}
-          {activeChapter && (
-            <section className="panel">
-              <h2>Source</h2>
-              <SourceView chapter={activeChapter} />
-            </section>
-          )}
-          <section className="panel">
-            <h2>Live trace</h2>
-            <EventLog />
-          </section>
-          <TerminalPanel />
-        </main>
-        <aside className="side-stack">
-          <Workspace />
-          <HistoryPanel />
-        </aside>
+    <div className="cordis-app">
+      <Header theme={theme} onThemeChange={setTheme} />
+      <div className="app-body">
+        <CurriculumRail mode={mode} onModeChange={setMode} />
+        <Workbench />
+        <InspectorRail />
       </div>
     </div>
   );

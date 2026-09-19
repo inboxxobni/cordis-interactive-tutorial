@@ -185,7 +185,7 @@ wss.on('connection', (ws) => {
       ws,
       id,
       workspace,
-      instr: createInstrumentedContext(emit),
+      instr: createInstrumentedContext(emit, { workspace, getProviderConfig: () => session?.providerConfig ?? null }),
       tools: buildTools(),
       agent: null,
       control: new AgentControl(),
@@ -315,6 +315,19 @@ function handleMessage(session: Session, raw: unknown): void {
         session.agent.runTurn(msg.message)
           .catch((err) => send(ws, { type: 'error', message: String(err), fatal: false }))
           .finally(() => { session.agentRunning = false })
+        return
+      }
+
+      case 'run_inner_agent': {
+        // Volume 2's chapter 23 only - the explicit, deliberate trigger for
+        // the real agent-loop it just composed. Never fires from any other
+        // action, so no chapter click ever spends a real LLM call on its own.
+        if (!session.instr.innerAgentLoop) {
+          send(ws, { type: 'error', message: 'No agent-loop is mounted yet - run chapter 23 first.', fatal: false })
+          return
+        }
+        session.instr.innerAgentLoop.runTurn(msg.task)
+          .catch((err) => send(ws, { type: 'error', message: String(err), fatal: false }))
         return
       }
 

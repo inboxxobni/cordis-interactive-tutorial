@@ -13,7 +13,8 @@
  * an explicit call instead of an interception point Cordis doesn't offer.
  */
 import { Context, type Fiber } from '@deepseek-ai/cordis'
-import type { TraceEvent, FiberState } from '@cordis-tutorial/shared'
+import type { TraceEvent, FiberState, ProviderConfig } from '@cordis-tutorial/shared'
+import type { Workspace } from './workspace.js'
 
 export type Emit = (event: TraceEvent) => void
 
@@ -70,9 +71,25 @@ export interface Instrumented {
    * exact object mount_plugin wrote it to (not a separate closure variable).
    */
   pendingSourcePath: string | null
+  /** The real, shared workspace directory - Volume 2's from-scratch agent
+   * plugins (chapters 17-23) read/write through this, same files the
+   * Workspace/Diff tabs and the tutorial's own outer agent already use. */
+  workspace: Workspace
+  /** Live getter, not a snapshot - the user can configure a provider in
+   * Settings at any point in a session, after this Instrumented already
+   * exists, so Volume 2's llm plugin (chapter 22) must read it fresh. */
+  getProviderConfig: () => ProviderConfig | null
+  /** Set by chapter 23 while its composed agent-loop is mounted; cleared by
+   * its own teardown. The only bridge between the WS message handler (which
+   * has no other way to reach a chapter-scoped plugin instance) and the
+   * real, live AgentLoop Service instance chapter 23 built. */
+  innerAgentLoop: { runTurn: (task: string) => Promise<void> } | null
 }
 
-export function createInstrumentedContext(emit: Emit): Instrumented {
+export function createInstrumentedContext(
+  emit: Emit,
+  deps: { workspace: Workspace; getProviderConfig: () => ProviderConfig | null },
+): Instrumented {
   const ctx = new Context()
 
   const instr: Instrumented = {
@@ -81,6 +98,9 @@ export function createInstrumentedContext(emit: Emit): Instrumented {
     mountedPaths: new Map<string, Fiber>(),
     pathByPluginId: new Map<string, string>(),
     pendingSourcePath: null,
+    workspace: deps.workspace,
+    getProviderConfig: deps.getProviderConfig,
+    innerAgentLoop: null,
     reportEffect: (pluginId, label, dispose) => {
       emit({ type: 'effect_acquire', pluginId, label })
       return () => {

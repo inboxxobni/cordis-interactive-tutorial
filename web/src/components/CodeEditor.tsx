@@ -95,23 +95,25 @@ export function CodeEditor({ path, content, readOnly = false, height = "360px", 
           </>
         )}
       </div>
-      <Editor
-        height={height}
-        theme="vs-dark"
-        path={path}
-        language={languageFor(path)}
-        value={draft}
-        onMount={handleMount}
-        onChange={(value) => setDraft(value ?? "")}
-        options={{
-          readOnly,
-          minimap: { enabled: false },
-          fontSize: 12,
-          fontFamily: "JetBrains Mono, SF Mono, Fira Code, Menlo, Consolas, monospace",
-          scrollBeyondLastLine: false,
-          automaticLayout: true,
-        }}
-      />
+      <div className="code-editor-surface">
+        <Editor
+          height={height}
+          theme="vs-dark"
+          path={path}
+          language={languageFor(path)}
+          value={draft}
+          onMount={handleMount}
+          onChange={(value) => setDraft(value ?? "")}
+          options={{
+            readOnly,
+            minimap: { enabled: false },
+            fontSize: 12,
+            fontFamily: "JetBrains Mono, SF Mono, Fira Code, Menlo, Consolas, monospace",
+            scrollBeyondLastLine: false,
+            automaticLayout: true,
+          }}
+        />
+      </div>
     </div>
   );
 }

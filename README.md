@@ -16,7 +16,9 @@ Recreates the official Cordis tutorial curriculum, then extends it with real ACR
 
 **Part 3 - ACRYL's built-in services** (chapter 12, reference-only) and **Part 4 - practice** (chapter 13, real three-role capability design; chapters 11/14/15 reference-only - they document real conventions like package/install order and the `dsh-tool-cordis` vs Plugin Manager distinction, but need real DSH plumbing this sandbox doesn't pull in).
 
-See `server/src/chapters/` for all fifteen.
+**Volume 2 - "Let's build our own Coding Agent Harness from scratch"** (chapters 16-24, real): the same 9-part "how a coding agent works" curriculum this project's own sibling [`aicodingagent-ts`](../aicodingagent-ts) teaches (a real, minimal, ~4-tool coding agent, plain TypeScript, no Cordis) - re-taught by actually building each concept as a real Cordis plugin. Chapters 17-21 mount a real `agentLoop` Service (`static inject = ['tools', 'llm', 'systemPrompt']`) alongside a growing cumulative set of dependencies - watch its fiber sit `PENDING` the whole way. Chapter 22 mounts the last one (`llm`, wired to whichever provider is already configured above - no new settings, no new keys) and the fiber flips to `ACTIVE` live, on canvas. Chapter 23 is the payoff: the exact same composition, inert until you click its one distinct suggestion chip, which drives one real turn - a real LLM call, real tool calls against this same shared `workspace/`, with the canvas flashing the real edges a call actually crosses. See `server/src/chapters/agent-harness/plugins/` for the five real plugins this volume is built from.
+
+See `server/src/chapters/` for all twenty-four chapters, and `shared/index.ts`'s `VOLUMES`/`PARTS` for how the left rail groups them into two collapsible volumes.
 
 ## Run locally
 

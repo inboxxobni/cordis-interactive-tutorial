@@ -94,6 +94,12 @@ interface State {
   terminalShell: string | null;
   terminalChunk: { seq: number; data: string } | null;
 
+  // Volume 2's inner agent-loop (chapters 17-23) - real edge id
+  // (`${consumerId}->${providerId}:${service}`, matching PluginGraph's own
+  // ids) to flash briefly when a real agent_llm_call/agent_tool_call event
+  // arrives, plus the explicit trigger for chapter 23's one real turn.
+  activeEdgeId: string | null;
+
   connect: () => void;
   runChapter: (id: ChapterId) => void;
   stopChapter: () => void;
@@ -120,6 +126,8 @@ interface State {
   sendTerminalInput: (data: string) => void;
   resizeTerminal: (cols: number, rows: number) => void;
   stopTerminal: () => void;
+  clearActiveEdge: () => void;
+  runInnerAgent: (task: string) => void;
 }
 
 const CONFIGS_KEY = "cordis-tutorial:provider-configs";
@@ -273,6 +281,10 @@ function describe(event: TraceEvent): string {
       return "";
     case "terminal_exit":
       return `terminal exited (code ${event.exitCode})`;
+    case "agent_llm_call":
+      return `${event.pluginId}: calling llm`;
+    case "agent_tool_call":
+      return `${event.pluginId}: calling tool "${event.tool}"`;
     case "error":
       return `error: ${event.message}`;
   }
@@ -342,6 +354,8 @@ export const useStore = create<State>((set, get) => ({
   terminalRunning: false,
   terminalShell: null,
   terminalChunk: null,
+
+  activeEdgeId: null,
 
   connect: () => {
     if (socket) return;
@@ -520,6 +534,12 @@ export const useStore = create<State>((set, get) => ({
         next.terminalChunk = { seq: (state.terminalChunk?.seq ?? 0) + 1, data: event.data };
       } else if (event.type === "terminal_exit") {
         next.terminalRunning = false;
+      } else if (event.type === "agent_llm_call") {
+        const target = state.serviceProviders["llm"];
+        if (target) next.activeEdgeId = `${event.pluginId}->${target}:llm`;
+      } else if (event.type === "agent_tool_call") {
+        const target = state.serviceProviders["tools"];
+        if (target) next.activeEdgeId = `${event.pluginId}->${target}:tools`;
       } else if (event.type === "error") {
         next.agentRunning = false;
         next.testing = false;
@@ -620,5 +640,11 @@ export const useStore = create<State>((set, get) => ({
 
   stopTerminal: () => {
     socket?.send({ type: "terminal_stop" });
+  },
+
+  clearActiveEdge: () => set({ activeEdgeId: null }),
+
+  runInnerAgent: (task) => {
+    socket?.send({ type: "run_inner_agent", task });
   },
 }));

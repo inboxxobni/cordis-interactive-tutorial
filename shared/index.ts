@@ -36,15 +36,41 @@ export type ChapterId =
   | "12-built-in-services"
   | "13-three-role-capability"
   | "14-llm-adapters"
-  | "15-runtime-inspection-and-install";
+  | "15-runtime-inspection-and-install"
+  | "16-what-is-an-agent"
+  | "17-the-loop"
+  | "18-tools"
+  | "19-context-window"
+  | "20-cache-and-compact"
+  | "21-system-prompt"
+  | "22-providers"
+  | "23-the-harness"
+  | "24-this-app";
 
-export type ChapterPart = "cordis-core" | "acryl-harness-basics" | "acryl-services" | "practice";
+export type ChapterPart = "cordis-core" | "acryl-harness-basics" | "acryl-services" | "practice" | "agent-concepts" | "agent-build";
 
-export const PARTS: { id: ChapterPart; title: string }[] = [
-  { id: "cordis-core", title: "Part 1 - Cordis core" },
-  { id: "acryl-harness-basics", title: "Part 2 - ACRYL Harness basics" },
-  { id: "acryl-services", title: "Part 3 - ACRYL's built-in services" },
-  { id: "practice", title: "Part 4 - Practice" },
+/**
+ * A volume is a collapsible group of Parts in the left rail - a level above
+ * ChapterPart. Volume 1 is the original 15-chapter Cordis/ACRYL curriculum;
+ * Volume 2 builds a second, real coding agent entirely out of Cordis
+ * plugins, porting the 9-part "how a coding agent works" theory from the
+ * sibling aicodingagent-ts project (a real, non-Cordis, ~4-tool teaching
+ * agent) chapter by chapter.
+ */
+export type ChapterVolume = "cordis-overview" | "coding-agent-harness";
+
+export const VOLUMES: { id: ChapterVolume; title: string }[] = [
+  { id: "cordis-overview", title: "Cordis global overview" },
+  { id: "coding-agent-harness", title: "Let's build our own Coding Agent Harness from scratch" },
+];
+
+export const PARTS: { id: ChapterPart; title: string; volume: ChapterVolume }[] = [
+  { id: "cordis-core", title: "Part 1 - Cordis core", volume: "cordis-overview" },
+  { id: "acryl-harness-basics", title: "Part 2 - ACRYL Harness basics", volume: "cordis-overview" },
+  { id: "acryl-services", title: "Part 3 - ACRYL's built-in services", volume: "cordis-overview" },
+  { id: "practice", title: "Part 4 - Practice", volume: "cordis-overview" },
+  { id: "agent-concepts", title: "Part 5 - Agent concepts", volume: "coding-agent-harness" },
+  { id: "agent-build", title: "Part 6 - Build the harness", volume: "coding-agent-harness" },
 ];
 
 export interface ChapterInfo {
@@ -197,6 +223,87 @@ export const CHAPTERS: ChapterInfo[] = [
     index: 15,
     title: "Runtime inspection & Plugin Manager",
     summary: "What dsh-tool-cordis (read-only) and Plugin Manager (persistent) actually do - and why neither is this tutorial's mount_plugin. Reference only.",
+    implemented: true,
+    runnable: false,
+  },
+  {
+    id: "16-what-is-an-agent",
+    part: "agent-concepts",
+    index: 16,
+    title: "What is an agent",
+    summary: "Agent = LLM + control loop + tools + context management. Orientation only.",
+    implemented: true,
+    runnable: false,
+  },
+  {
+    id: "17-the-loop",
+    part: "agent-concepts",
+    index: 17,
+    title: "The loop",
+    summary: "A real Cordis Service implementing the turn/step loop - mounted alone, watch it wait PENDING.",
+    implemented: true,
+    runnable: true,
+  },
+  {
+    id: "18-tools",
+    part: "agent-build",
+    index: 18,
+    title: "Tools",
+    summary: "A real tools service + list/read/write/edit, registered the defineTool() way.",
+    implemented: true,
+    runnable: true,
+  },
+  {
+    id: "19-context-window",
+    part: "agent-build",
+    index: 19,
+    title: "Context window",
+    summary: "A real message log, token estimate, and cacheable-prefix length as a Cordis service.",
+    implemented: true,
+    runnable: true,
+  },
+  {
+    id: "20-cache-and-compact",
+    part: "agent-build",
+    index: 20,
+    title: "Cache & compact",
+    summary: "One real Cordis event hook that summarizes old messages once the token count crosses a threshold.",
+    implemented: true,
+    runnable: true,
+  },
+  {
+    id: "21-system-prompt",
+    part: "agent-build",
+    index: 21,
+    title: "System prompt",
+    summary: "The stable prefix, assembled for real from the live tool list and workspace listing.",
+    implemented: true,
+    runnable: true,
+  },
+  {
+    id: "22-providers",
+    part: "agent-build",
+    index: 22,
+    title: "Providers",
+    summary: "The real llm service, wired to whatever provider is already configured in Settings - watch agent-loop flip PENDING to ACTIVE.",
+    implemented: true,
+    runnable: true,
+  },
+  {
+    id: "23-the-harness",
+    part: "agent-build",
+    index: 23,
+    title: "The harness",
+    summary: "The full stack, composed and ACTIVE - ask it a real task and watch a real turn run on the canvas.",
+    implemented: true,
+    runnable: true,
+  },
+  {
+    id: "24-this-app",
+    part: "agent-build",
+    index: 24,
+    title: "This app",
+    summary: "How this volume is architected - recap and pointers to the real files, in this tutorial's own workspace.",
     implemented: true,
     runnable: false,
   },
@@ -446,6 +553,13 @@ export type TraceEvent =
   | { type: "terminal_started"; shell: string }
   | { type: "terminal_output"; data: string }
   | { type: "terminal_exit"; exitCode: number }
+  // -- Volume 2's inner agent-loop: the same shapes above describe the
+  // tutorial's own outer meta-agent; these two describe the real, separate
+  // Cordis-plugin agent-loop chapters 17-23 build and mount, firing at the
+  // real moments it calls the llm/tools services so the canvas can flash
+  // the matching edge. --
+  | { type: "agent_llm_call"; pluginId: string }
+  | { type: "agent_tool_call"; pluginId: string; tool: string }
   | { type: "error"; message: string; fatal: boolean };
 
 // ---------------------------------------------------------------------------
@@ -468,7 +582,11 @@ export type ClientMessage =
   | { type: "terminal_start"; cols: number; rows: number }
   | { type: "terminal_input"; data: string }
   | { type: "terminal_resize"; cols: number; rows: number }
-  | { type: "terminal_stop" };
+  | { type: "terminal_stop" }
+  /** Chapter 23's explicit trigger only - drives the real, separately-mounted
+   * inner agent-loop's first turn. Never fired by any other chip/action, so
+   * no real LLM call ever happens just from clicking through chapters. */
+  | { type: "run_inner_agent"; task: string };
 
 // ---------------------------------------------------------------------------
 // Archives: a real, persistent, on-disk bundle of BOTH a session's workspace
