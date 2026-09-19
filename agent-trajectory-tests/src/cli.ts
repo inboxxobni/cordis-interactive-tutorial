@@ -104,6 +104,7 @@ async function main(): Promise<void> {
       console.log(`  goal: ${run.goal.description}`);
       console.log(`  ${run.goal.passed ? "PASS" : "FAIL"} - ${run.goal.details}`);
       console.log(`  wall time: ${(run.wallMs / 1000).toFixed(1)}s, ${formatUsageMetrics(run.usage)}`);
+      console.log(`  context reads: ${run.contextReads.docs.length} docs, ${run.contextReads.examples.length} examples${run.contextReads.docs.length + run.contextReads.examples.length ? ` (${[...run.contextReads.docs, ...run.contextReads.examples].join(', ')})` : ''}`);
       if (!run.goal.passed) anyFailed = true;
     }
     console.log(`\nVolume ${target.volume} total: ${formatUsageMetrics(summary.totalUsage)}`);

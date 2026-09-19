@@ -1,0 +1,333 @@
+[
+  {
+    "id": "function-plugin",
+    "teaches": "Smallest plugin, function form",
+    "docs": [
+      "docs/guide/part-04-plugins-and-fibers.md"
+    ],
+    "steps": [
+      {
+        "mount": "plugins/01-function-plugin.mjs",
+        "expect": "ACTIVE"
+      },
+      {
+        "expectLog": "[example-function-plugin] active"
+      }
+    ]
+  },
+  {
+    "id": "service-class",
+    "teaches": "Class form providing a named service",
+    "docs": [
+      "docs/guide/part-06-services-and-inject.md"
+    ],
+    "steps": [
+      {
+        "mount": "plugins/03-service-class.mjs",
+        "expect": "ACTIVE"
+      },
+      {
+        "expectService": "greeter"
+      }
+    ]
+  },
+  {
+    "id": "pending-then-active",
+    "teaches": "inject is a hard dependency: PENDING until the provider mounts, regardless of mount order",
+    "docs": [
+      "docs/guide/part-06-services-and-inject.md",
+      "docs/guide/part-04-plugins-and-fibers.md"
+    ],
+    "steps": [
+      {
+        "mount": "plugins/04-service-consumer.mjs",
+        "expect": "PENDING"
+      },
+      {
+        "mount": "plugins/03-service-class.mjs",
+        "expect": "ACTIVE"
+      },
+      {
+        "expectState": {
+          "plugins/04-service-consumer.mjs": "ACTIVE"
+        }
+      },
+      {
+        "expectLog": "[example-service-consumer] Hello, consumer!"
+      }
+    ]
+  },
+  {
+    "id": "optional-dependency",
+    "teaches": "Optional dependency via ctx.get, never PENDING",
+    "docs": [
+      "docs/guide/part-06-services-and-inject.md"
+    ],
+    "steps": [
+      {
+        "mount": "plugins/05-optional-dependency.mjs",
+        "expect": "ACTIVE"
+      },
+      {
+        "expectLog": "no greeter, using fallback"
+      }
+    ]
+  },
+  {
+    "id": "effect-cleanup",
+    "teaches": "Timers live inside ctx.effect and are disposed with the fiber",
+    "docs": [
+      "docs/guide/part-05-effects.md"
+    ],
+    "steps": [
+      {
+        "mount": "plugins/06-effect-timer.mjs",
+        "expect": "ACTIVE"
+      },
+      {
+        "dispose": "plugins/06-effect-timer.mjs"
+      },
+      {
+        "expectLog": "[example-effect-timer] timer cleared"
+      }
+    ]
+  },
+  {
+    "id": "events",
+    "teaches": "ctx.on / ctx.emit",
+    "docs": [
+      "docs/guide/part-07-events.md"
+    ],
+    "steps": [
+      {
+        "mount": "plugins/07-event-listener.mjs",
+        "expect": "ACTIVE"
+      },
+      {
+        "mount": "plugins/08-event-emitter.mjs",
+        "expect": "ACTIVE"
+      },
+      {
+        "expectLog": "heard example/hello: world"
+      }
+    ]
+  },
+  {
+    "id": "waterfall",
+    "teaches": "Waterfall around-middleware that calls next()",
+    "docs": [
+      "docs/guide/part-07-events.md"
+    ],
+    "steps": [
+      {
+        "mount": "plugins/09-waterfall-listener.mjs",
+        "expect": "ACTIVE"
+      },
+      {
+        "mount": "plugins/09-waterfall-caller.mjs",
+        "expect": "ACTIVE"
+      },
+      {
+        "expectLog": "waterfall result: [hi]"
+      }
+    ]
+  },
+  {
+    "id": "config-valid",
+    "teaches": "Schemastery config, valid input",
+    "docs": [
+      "docs/guide/part-08-configuration.md"
+    ],
+    "steps": [
+      {
+        "mount": "plugins/10-config-schemastery.mjs",
+        "config": {
+          "greeting": "hey"
+        },
+        "expect": "ACTIVE"
+      },
+      {
+        "expectLog": "greeting=\"hey\" intervalMs=5000"
+      }
+    ]
+  },
+  {
+    "id": "config-invalid",
+    "teaches": "Invalid config fails the whole mount before apply() runs",
+    "docs": [
+      "docs/guide/part-08-configuration.md"
+    ],
+    "steps": [
+      {
+        "mount": "plugins/10-config-schemastery.mjs",
+        "config": {
+          "intervalMs": 10
+        },
+        "expect": "FAILED"
+      }
+    ]
+  },
+  {
+    "id": "tools",
+    "teaches": "A tool plugin registering on a tools service",
+    "docs": [
+      "docs/guide/part-11-tools.md"
+    ],
+    "steps": [
+      {
+        "mount": "plugins/12-tool-plugin.mjs",
+        "expect": "PENDING"
+      },
+      {
+        "mount": "plugins/11-tools-service.mjs",
+        "expect": "ACTIVE"
+      },
+      {
+        "expectState": {
+          "plugins/12-tool-plugin.mjs": "ACTIVE"
+        }
+      },
+      {
+        "expectLog": "registered tool: greet"
+      }
+    ]
+  },
+  {
+    "id": "three-role-capability",
+    "teaches": "Definition / Provider / Consumer, and swapping the provider",
+    "docs": [
+      "docs/guide/part-14-three-role-capability.md",
+      "docs/guide/part-06-services-and-inject.md"
+    ],
+    "steps": [
+      {
+        "mount": "plugins/13-capability-consumer.mjs",
+        "expect": "PENDING"
+      },
+      {
+        "mount": "plugins/13-capability-provider-local.mjs",
+        "expect": "ACTIVE"
+      },
+      {
+        "expectState": {
+          "plugins/13-capability-consumer.mjs": "ACTIVE"
+        }
+      },
+      {
+        "expectLog": "[example-capability-consumer] got: THREE-ROLE CAPABILITY"
+      },
+      {
+        "dispose": "plugins/13-capability-provider-local.mjs"
+      },
+      {
+        "mount": "plugins/13-capability-provider-shout.mjs",
+        "expect": "ACTIVE"
+      },
+      {
+        "expectState": {
+          "plugins/13-capability-consumer.mjs": "ACTIVE"
+        }
+      },
+      {
+        "expectLog": "[example-capability-consumer] got: THREE-ROLE CAPABILITY!!!"
+      }
+    ]
+  },
+  {
+    "id": "deliberate-failure",
+    "teaches": "What FAILED looks like",
+    "docs": [
+      "docs/guide/part-17-debugging.md"
+    ],
+    "steps": [
+      {
+        "mount": "plugins/14-deliberate-failure.mjs",
+        "expect": "FAILED",
+        "expectError": "deliberate failure"
+      }
+    ]
+  },
+  {
+    "id": "missing-dependency",
+    "teaches": "Diagnosing PENDING",
+    "docs": [
+      "docs/guide/part-17-debugging.md"
+    ],
+    "steps": [
+      {
+        "mount": "plugins/15-missing-dependency.mjs",
+        "expect": "PENDING"
+      }
+    ]
+  },
+  {
+    "id": "remount",
+    "teaches": "Re-mounting the same path disposes the old fiber first (edit -> mount_plugin cycle)",
+    "docs": [
+      "docs/guide/part-04-plugins-and-fibers.md"
+    ],
+    "steps": [
+      {
+        "mount": "plugins/06-effect-timer.mjs",
+        "expect": "ACTIVE"
+      },
+      {
+        "mount": "plugins/06-effect-timer.mjs",
+        "expect": "ACTIVE"
+      },
+      {
+        "expectLog": "[example-effect-timer] timer cleared"
+      }
+    ]
+  },
+  {
+    "id": "coding-agent",
+    "teaches": "A complete coding agent from six plugins. Mounted in the worst order (loop first): agentLoop stays PENDING until llm/tools/systemPrompt exist, then flips ACTIVE by itself.",
+    "docs": [
+      "docs/coding-agent-harness.md",
+      "docs/guide/part-13-hands-on-mini-system.md"
+    ],
+    "env": {
+      "CORDIS_AGENT_PROVIDER": "deepseek",
+      "CORDIS_AGENT_MODEL": "example-model",
+      "CORDIS_AGENT_API_KEY": "example-key-not-used",
+      "CORDIS_AGENT_BASE_URL": "https://example.invalid/v1"
+    },
+    "steps": [
+      {
+        "mount": "coding-agent/agent-loop.mjs",
+        "expect": "PENDING"
+      },
+      {
+        "mount": "coding-agent/compaction.mjs",
+        "expect": "PENDING"
+      },
+      {
+        "mount": "coding-agent/context-window.mjs",
+        "expect": "ACTIVE"
+      },
+      {
+        "mount": "coding-agent/system-prompt.mjs",
+        "expect": "PENDING"
+      },
+      {
+        "mount": "coding-agent/llm.mjs",
+        "expect": "ACTIVE"
+      },
+      {
+        "mount": "coding-agent/tools.mjs",
+        "expect": "ACTIVE"
+      },
+      {
+        "expectState": {
+          "coding-agent/agent-loop.mjs": "ACTIVE",
+          "coding-agent/compaction.mjs": "ACTIVE",
+          "coding-agent/system-prompt.mjs": "ACTIVE"
+        }
+      },
+      {
+        "expectService": "agentLoop"
+      }
+    ]
+  }
+]

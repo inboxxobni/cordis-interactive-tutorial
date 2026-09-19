@@ -4,8 +4,15 @@
  */
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 const IGNORED = new Set(['.git', 'node_modules', '.DS_Store'])
+
+// Source of the reference docs + verified examples the agent reads on demand
+// (pi.dev pattern: docs/ + examples/ + a manifest, not a giant prompt). Lives
+// in this repo at server/agent-context/; copied into the workspace because the
+// agent's file tools are sandboxed to the workspace root.
+const AGENT_CONTEXT_SRC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../agent-context')
 
 export class Workspace {
   readonly root: string
@@ -85,6 +92,18 @@ export class Workspace {
       ].join('\n'),
       force,
     )
+    await this.syncAgentContext()
+    // This directory sits nested inside this repo's own pnpm-workspace.yaml
+    // (a monorepo). Without its own pnpm-workspace.yaml, `pnpm install` run
+    // from inside here walks up, finds the outer one, and silently treats
+    // this folder as an undeclared member of THAT workspace instead of
+    // installing its own dependencies locally - `@deepseek-ai/cordis` never
+    // actually lands in node_modules, and `pnpm dev` fails with
+    // ERR_MODULE_NOT_FOUND. This file makes pnpm stop the upward search
+    // here, so this folder installs and runs as the genuinely standalone
+    // project the README promises - both in place and after being copied
+    // anywhere else.
+    await this.seedFile('pnpm-workspace.yaml', ['packages:', '  - .', ''].join('\n'), force)
     await this.seedFile(
       'package.json',
       JSON.stringify(
@@ -128,6 +147,8 @@ export class Workspace {
         'const ctx = new Context()',
         'const fibers = []',
         '',
+        'function sleep(ms) { return new Promise((r) => setTimeout(r, ms)) }',
+        '',
         "await ctx.plugin(WebServer, { host: '127.0.0.1', port: Number(process.env.PORT) || 8790 })",
         '',
         'ctx.webServer.register({',
@@ -149,16 +170,27 @@ export class Workspace {
         "  console.log('[run] no plugin files found (looked for *.mjs, excluding run.mjs)')",
         '}',
         '',
+        'const mounted = []',
         'for (const file of pluginFiles) {',
         '  try {',
         '    const mod = await import(pathToFileURL(path.join(dir, file)).href)',
         '    const fiber = ctx.plugin(mod, {})',
         '    fibers.push(fiber)',
+        '    mounted.push([file, fiber])',
         '    await fiber',
-        '    console.log(`[run] ${file}: ${STATE_NAMES[fiber.state] ?? fiber.state}`)',
         '  } catch (err) {',
         "    console.error(`[run] ${file}: failed to mount -`, err instanceof Error ? err.message : err)",
         '  }',
+        '}',
+        '',
+        '// Dependency-driven fibers can still be PENDING right after their own',
+        '// mount call returns - a later file in this same loop may be exactly',
+        '// what they were waiting on. Wait one tick for the whole batch to',
+        '// settle before reporting real, final states - not a premature',
+        '// mount-order snapshot.',
+        'await sleep(200)',
+        'for (const [file, fiber] of mounted) {',
+        '  console.log(`[run] ${file}: ${STATE_NAMES[fiber.state] ?? fiber.state}`)',
         '}',
         '',
         'console.log(`[run] listening on http://${ctx.webServer.host}:${ctx.webServer.port} - try /healthz`)',
@@ -175,6 +207,29 @@ export class Workspace {
     )
   }
 
+  /**
+   * Copies agent-context/{docs,examples}/ into the workspace. Unlike seedFile,
+   * this ALWAYS overwrites: it is managed reference material (rewritten on
+   * every server start and workspace reset so it can never go stale), not
+   * something the agent or user is expected to edit. Copy an example to the
+   * workspace root to modify it.
+   */
+  private async syncAgentContext(): Promise<void> {
+    const copyDir = async (from: string, to: string): Promise<void> => {
+      await fs.mkdir(to, { recursive: true })
+      for (const entry of await fs.readdir(from, { withFileTypes: true })) {
+        if (IGNORED.has(entry.name)) continue
+        const src = path.join(from, entry.name)
+        const dest = path.join(to, entry.name)
+        if (entry.isDirectory()) await copyDir(src, dest)
+        else await fs.copyFile(src, dest)
+      }
+    }
+    for (const dir of ['docs', 'examples']) {
+      await copyDir(path.join(AGENT_CONTEXT_SRC, dir), path.join(this.root, dir))
+    }
+  }
+
   /** Writes a seed file only if missing (or always, when force-resetting) - never clobbers a file the agent or user has since edited. */
   private async seedFile(rel: string, content: string, force: boolean): Promise<void> {
     const target = path.join(this.root, rel)
@@ -186,6 +241,7 @@ export class Workspace {
         // missing - create below
       }
     }
+    await fs.mkdir(path.dirname(target), { recursive: true })
     await fs.writeFile(target, content, 'utf8')
   }
 

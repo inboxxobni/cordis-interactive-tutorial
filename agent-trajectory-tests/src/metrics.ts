@@ -76,3 +76,20 @@ export function formatUsageMetrics(m: UsageMetrics): string {
   const cache = m.cacheHitRate !== undefined ? `, cache hit ${(m.cacheHitRate * 100).toFixed(1)}% (${m.cacheHitTokens}/${(m.cacheHitTokens ?? 0) + (m.cacheMissTokens ?? 0)} tokens)` : ", cache: not reported";
   return `${m.llmCalls} LLM call(s), ${m.inputTokens} in / ${m.outputTokens} out tokens${cache}`;
 }
+
+/**
+ * How many times the agent read the reference docs / verified examples with
+ * its own file tools - the direct measure of whether the system-prompt router
+ * (pi.dev pattern) is actually steering it to pull context on demand.
+ */
+export function computeContextReads(events: TraceEvent[]): { docs: string[]; examples: string[] } {
+  const docs: string[] = [];
+  const examples: string[] = [];
+  for (const e of events) {
+    if (e.type !== "tool_call_start" || e.toolCall.name !== "read_file") continue;
+    const p = String(e.toolCall.input.path ?? "");
+    if (p.startsWith("docs/")) docs.push(p);
+    else if (p.startsWith("examples/")) examples.push(p);
+  }
+  return { docs, examples };
+}

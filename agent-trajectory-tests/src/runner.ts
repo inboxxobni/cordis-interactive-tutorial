@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { TraceEvent } from "@cordis-tutorial/shared";
-import { computeUsageMetrics, sumUsageMetrics } from "./metrics.js";
+import { computeContextReads, computeUsageMetrics, sumUsageMetrics } from "./metrics.js";
 import { formatRunFolderName, generateRunId } from "./run-folder.js";
 import { TrajectoryClient } from "./ws-client.js";
 import type { ChapterSummary, RunConfig, StepRecord, TestCase, TrajectoryRun, VolumeRunSummary } from "./types.js";
@@ -52,6 +52,7 @@ function buildRun(testCase: TestCase, config: RunConfig, steps: StepRecord[], wa
     totalSteps: steps.reduce((sum, s) => sum + (s.events.filter((e) => e.type === "loop_start").length || 0), 0),
     wallMs,
     usage: computeUsageMetrics(allEvents),
+    contextReads: computeContextReads(allEvents),
   };
 }
 
@@ -171,6 +172,7 @@ export async function saveVolumeRun(
     steps: run.totalSteps,
     wallMs: run.wallMs,
     usage: run.usage,
+    contextReads: run.contextReads,
   }));
 
   const summary: VolumeRunSummary = {

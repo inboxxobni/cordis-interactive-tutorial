@@ -1,0 +1,241 @@
+{
+  "navigation": [
+    {
+      "title": "Start here",
+      "items": [
+        {
+          "title": "This sandbox vs real ACRYL/DSH",
+          "path": "this-sandbox.md",
+          "sandbox": "applies",
+          "when": "Always read first: what tools you have, what plugin file shapes work, what does not apply here."
+        },
+        {
+          "title": "Cordis usage cheatsheet (source-validated)",
+          "path": "cheatsheet.md",
+          "sandbox": "applies",
+          "when": "Fast one-page contract for Context, Service, inject, events, Fiber, effects. Includes doc-vs-source corrections."
+        },
+        {
+          "title": "Verifying your work",
+          "path": "verifying-your-work.md",
+          "sandbox": "applies",
+          "when": "Before claiming a plugin works or stating any live Fiber state."
+        },
+        {
+          "title": "Building the coding-agent harness",
+          "path": "coding-agent-harness.md",
+          "sandbox": "applies",
+          "when": "Building tools/llm/contextWindow/compaction/systemPrompt/agentLoop plugins."
+        }
+      ]
+    },
+    {
+      "title": "Handbook (Cordis System Guide for Coding Agents, split by Part)",
+      "items": [
+        {
+          "title": "Handbook (intro): Purpose of the handbook",
+          "path": "guide/part-00-purpose.md",
+          "sandbox": "applies",
+          "when": "Orientation only."
+        },
+        {
+          "title": "Handbook Part 1: The Cordis mental model",
+          "path": "guide/part-01-mental-model.md",
+          "sandbox": "applies",
+          "when": "Before writing your first plugin or when Cordis terms (Context, Fiber, Service, effect) are unclear."
+        },
+        {
+          "title": "Handbook Part 2: Theory translated into engineering",
+          "path": "guide/part-02-theory.md",
+          "sandbox": "partial",
+          "when": "Only when you need the WHY behind effects/disposers/LIFO cleanup. Skip for routine plugin work."
+        },
+        {
+          "title": "Handbook Part 3: The actual Cordis runtime (Context API)",
+          "path": "guide/part-03-runtime.md",
+          "sandbox": "applies",
+          "when": "Using ctx.extend/isolate/intercept, or unsure what ctx really exposes."
+        },
+        {
+          "title": "Handbook Part 4: Plugins and Fibers",
+          "path": "guide/part-04-plugins-and-fibers.md",
+          "sandbox": "applies",
+          "when": "Choosing a plugin shape (function/object/class), ctx.plugin(), Fiber states (PENDING is not an error), Registry."
+        },
+        {
+          "title": "Handbook Part 5: Effects: the lifecycle discipline",
+          "path": "guide/part-05-effects.md",
+          "sandbox": "applies",
+          "when": "Any timer, subscription, listener, or resource that outlives one apply() call."
+        },
+        {
+          "title": "Handbook Part 6: Services and live dependency injection",
+          "path": "guide/part-06-services-and-inject.md",
+          "sandbox": "applies",
+          "when": "ctx.provide / inject, required vs optional deps, provider replacement, three-role capability seams."
+        },
+        {
+          "title": "Handbook Part 7: Events",
+          "path": "guide/part-07-events.md",
+          "sandbox": "applies",
+          "when": "ctx.emit / on and the dispatch modes (parallel, serial, bail, waterfall), typed events."
+        },
+        {
+          "title": "Handbook Part 8: Plugin configuration",
+          "path": "guide/part-08-configuration.md",
+          "sandbox": "applies",
+          "when": "Config schemas (Schemastery), validation failure, config update/HMR."
+        },
+        {
+          "title": "Handbook Part 9: cordis.yml, Loader, reconciliation, HMR",
+          "path": "guide/part-09-loader-and-hmr.md",
+          "sandbox": "acryl-only",
+          "when": "Only for real ACRYL/DSH composition via cordis.yml. Not used by mount_plugin."
+        },
+        {
+          "title": "Handbook Part 10: DeepSeek Harness: Cordis as an agent runtime",
+          "path": "guide/part-10-harness-runtime.md",
+          "sandbox": "partial",
+          "when": "Understanding how Harness layers agent services on Cordis."
+        },
+        {
+          "title": "Handbook Part 11: Tools: from plugin to model-callable capability",
+          "path": "guide/part-11-tools.md",
+          "sandbox": "applies",
+          "when": "Writing a tool plugin (defineTool shape: name, parameters, output, execute) against a tools service."
+        },
+        {
+          "title": "Handbook Part 12: LLM adapters",
+          "path": "guide/part-12-llm-adapters.md",
+          "sandbox": "partial",
+          "when": "Implementing an llm service / provider adapter (stream/StreamChunk contract)."
+        },
+        {
+          "title": "Handbook Part 13: End-to-end hands-on Cordis mini-system",
+          "path": "guide/part-13-hands-on-mini-system.md",
+          "sandbox": "applies",
+          "when": "A worked, multi-plugin build from scratch. Read before building anything multi-file."
+        },
+        {
+          "title": "Handbook Part 14: Three-role capability design",
+          "path": "guide/part-14-three-role-capability.md",
+          "sandbox": "applies",
+          "when": "Splitting a capability into Service Definition / Provider / Consumer."
+        },
+        {
+          "title": "Handbook Part 15: Profiles, bundles, patches, publishing",
+          "path": "guide/part-15-profiles-bundles-publishing.md",
+          "sandbox": "acryl-only",
+          "when": "Only when packaging a plugin for a real ACRYL/DSH install."
+        },
+        {
+          "title": "Handbook Part 16: Coding-agent decision framework",
+          "path": "guide/part-16-decision-framework.md",
+          "sandbox": "applies",
+          "when": "Deciding what kind of thing to build (plugin vs service vs event vs tool)."
+        },
+        {
+          "title": "Handbook Part 17: Debugging",
+          "path": "guide/part-17-debugging.md",
+          "sandbox": "applies",
+          "when": "A plugin is PENDING, FAILED, silent, or duplicating after re-mount."
+        },
+        {
+          "title": "Handbook Part 18: Anti-pattern catalog",
+          "path": "guide/part-18-anti-patterns.md",
+          "sandbox": "applies",
+          "when": "Review your plugin against known mistakes before declaring it done."
+        },
+        {
+          "title": "Handbook Part 19: Designing self-updatable systems",
+          "path": "guide/part-19-self-updatable-systems.md",
+          "sandbox": "applies",
+          "when": "An agent building/replacing its own plugins (ACRYL self-extension)."
+        },
+        {
+          "title": "Handbook Part 20: Testing Cordis components",
+          "path": "guide/part-20-testing.md",
+          "sandbox": "applies",
+          "when": "Verifying a plugin for real: mount it, read real fiber state."
+        },
+        {
+          "title": "Handbook Part 21: Practical reference: what should I use?",
+          "path": "guide/part-21-what-should-i-use.md",
+          "sandbox": "applies",
+          "when": "Quick lookup: capability -> Cordis primitive."
+        },
+        {
+          "title": "Handbook Part 22: Coding-agent rules: MUST / SHOULD / MUST NOT",
+          "path": "guide/part-22-rules.md",
+          "sandbox": "applies",
+          "when": "Read once before writing plugin code; the non-negotiables."
+        },
+        {
+          "title": "Handbook Part 23: Architecture review template",
+          "path": "guide/part-23-architecture-review.md",
+          "sandbox": "partial",
+          "when": "Reviewing a multi-plugin design."
+        },
+        {
+          "title": "Handbook Part 24: Applying the model to an ACRYL-style platform",
+          "path": "guide/part-24-acryl-platform.md",
+          "sandbox": "acryl-only",
+          "when": "ACRYL-specific architecture; not needed for sandbox plugins."
+        },
+        {
+          "title": "Handbook Part 25: Source-reading guide",
+          "path": "guide/part-25-source-reading.md",
+          "sandbox": "partial",
+          "when": "When docs are ambiguous and you must read the real @deepseek-ai/cordis source."
+        },
+        {
+          "title": "Handbook Part 26: Compact master reference",
+          "path": "guide/part-26-compact-reference.md",
+          "sandbox": "applies",
+          "when": "A one-page recap once you know the model."
+        },
+        {
+          "title": "Handbook Part 27: Final operating principles",
+          "path": "guide/part-27-operating-principles.md",
+          "sandbox": "applies",
+          "when": "The short principles list."
+        },
+        {
+          "title": "Handbook Appendix A: practical source map",
+          "path": "guide/part-28-appendix-a-source-map.md",
+          "sandbox": "partial",
+          "when": "Where things live in the real source."
+        },
+        {
+          "title": "Handbook Appendix B: completion checklist",
+          "path": "guide/part-29-appendix-b-completion-checklist.md",
+          "sandbox": "applies",
+          "when": "Run this checklist before claiming a plugin is done."
+        },
+        {
+          "title": "Handbook Appendix C: 30-second onboarding prompt",
+          "path": "guide/part-30-appendix-c-onboarding-prompt.md",
+          "sandbox": "applies",
+          "when": "Fastest orientation."
+        }
+      ]
+    },
+    {
+      "title": "ACRYL Desktop only (not used by mount_plugin)",
+      "items": [
+        {
+          "title": "Hello World plugin guide (bundles, profiles)",
+          "path": "acryl/hello-world-plugin-guide.md",
+          "sandbox": "acryl-only",
+          "when": "Only when packaging/installing a plugin into real ACRYL Desktop."
+        },
+        {
+          "title": "Cordis plugins index",
+          "path": "acryl/README.md",
+          "sandbox": "acryl-only",
+          "when": "Index of the ACRYL-side plugin docs."
+        }
+      ]
+    }
+  ]
+}

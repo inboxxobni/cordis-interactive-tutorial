@@ -159,7 +159,8 @@ export const CHAPTER_SUGGESTIONS: Partial<Record<ChapterId, ChapterSuggestions>>
     hint: "This is the only chip in this tutorial that spends a real, billed LLM call just from being clicked - it drives a second, real turn through the agent you built, not this chat's own turn.",
   },
   "24-this-app": {
-    standalone: "Read back each of the 6 files you wrote (agent-loop.mjs, tools.mjs, context-window.mjs, compaction.mjs, system-prompt.mjs, llm.mjs) and confirm the workspace really contains a complete, working agent.",
+    standalone:
+      "Read back each of the 6 files you wrote (agent-loop.mjs, tools.mjs, context-window.mjs, compaction.mjs, system-prompt.mjs, llm.mjs) and confirm the workspace really contains a complete, working agent. Then write AGENT.md: what agentLoop.runTurn(task) does, the real inject chain (agentLoop needs tools+llm+systemPrompt; systemPrompt needs tools; compaction needs contextWindow), how to run it standalone (pnpm install && pnpm dev, then how to actually drive a turn), and which env vars llm.mjs needs.",
   },
 };
 

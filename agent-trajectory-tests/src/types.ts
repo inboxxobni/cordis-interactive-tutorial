@@ -83,6 +83,8 @@ export interface TrajectoryRun {
   totalSteps: number;
   wallMs: number;
   usage: UsageMetrics;
+  /** File paths under docs/ and examples/ the agent read via read_file during this chapter. */
+  contextReads: { docs: string[]; examples: string[] };
 }
 
 /** Comparison of one chapter's goal/cost against the same chapter in the most recent previous volume run. */
@@ -113,6 +115,7 @@ export interface ChapterSummary {
   steps: number;
   wallMs: number;
   usage: UsageMetrics;
+  contextReads: { docs: string[]; examples: string[] };
 }
 
 /**
