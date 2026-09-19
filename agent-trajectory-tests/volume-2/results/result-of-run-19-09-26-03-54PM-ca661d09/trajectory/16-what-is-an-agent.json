@@ -1,0 +1,1416 @@
+{
+  "chapter": "16-what-is-an-agent",
+  "runAt": "2026-09-19T13:51:25.609Z",
+  "config": {
+    "provider": "deepseek",
+    "model": "deepseek-flash",
+    "baseURL": "https://api.deepseek.com/v1",
+    "serverUrl": "ws://localhost:8788/ws",
+    "turnTimeoutMs": 240000,
+    "resetWorkspaceFirst": true
+  },
+  "steps": [
+    {
+      "prompt": "In one short paragraph, what's the difference between a plain chat UI and a coding agent? Nothing to build yet - chapter 17 starts the real build.",
+      "startedAt": "2026-09-19T13:51:22.001Z",
+      "endedAt": "2026-09-19T13:51:25.587Z",
+      "status": "done",
+      "events": [
+        {
+          "type": "chapter_change",
+          "chapter": "16-what-is-an-agent"
+        },
+        {
+          "type": "chapter_start",
+          "chapter": "16-what-is-an-agent",
+          "title": "What is an agent"
+        },
+        {
+          "type": "log",
+          "pluginId": null,
+          "message": "Orientation only - see the theory panel. Chapter 17 starts building the real thing."
+        },
+        {
+          "type": "chapter_end",
+          "chapter": "16-what-is-an-agent"
+        },
+        {
+          "type": "status",
+          "status": "running"
+        },
+        {
+          "type": "turn_start",
+          "turn": 1,
+          "userMessage": "In one short paragraph, what's the difference between a plain chat UI and a coding agent? Nothing to build yet - chapter 17 starts the real build."
+        },
+        {
+          "type": "loop_start",
+          "iteration": 1,
+          "maxSteps": 25,
+          "contextTokens": 837,
+          "messageCount": 2
+        },
+        {
+          "type": "status",
+          "status": "calling-llm"
+        },
+        {
+          "type": "llm_request",
+          "provider": "deepseek",
+          "model": "deepseek-flash",
+          "url": "https://api.deepseek.com/v1",
+          "messageCount": 2,
+          "tools": [
+            "list_files",
+            "read_file",
+            "write_file",
+            "edit_file",
+            "mount_plugin",
+            "cordis_inspect_list",
+            "cordis_inspect_query",
+            "run_workspace_agent_turn"
+          ],
+          "payload": {
+            "messages": [
+              {
+                "role": "system",
+                "content": "You are a coding agent practicing how to build Cordis plugins, running inside\na live visualizer connected to a REAL @deepseek-ai/cordis Context. Everything\nyou do is real: files you write land on disk, and mount_plugin activates them\nin an actual Context - not a simulation. You work only inside a sandboxed\nworkspace directory (relative paths only).\n\nCordis architecture docs (read the one for your topic BEFORE implementing;\nfollow `see docs/...` cross-references; do not guess from memory):\n- Index / topic router: docs/README.md\n- Plugin shape, provide/inject, Fiber lifecycle, ctx.effect: docs/plugin-basics.md\n- Building the coding-agent harness (tools/llm/contextWindow/compaction/\n  systemPrompt/agentLoop, path + credential conventions): docs/coding-agent-harness.md\n- Confirming a plugin really works: docs/verifying-your-work.md\n- Real mountable example of the plugin shape: hello-plugin.mjs\n\nRules for every task:\n- Loop: write_file/edit_file a plugin, mount_plugin it, read the returned real\n  Fiber state. ACTIVE = worked. PENDING = an unmet inject (healthy, not broken).\n  FAILED = apply() threw - fix the real error.\n- Never claim a plugin works, or state its live Fiber state / inject list, from\n  memory. Verify with mount_plugin's result or cordis_inspect_list ->\n  cordis_inspect_query.\n\nYour tools:\n  - list_files: List files and directories at a relative path (default \".\"). Returns names only.\n  - read_file: Read the full contents of a file by relative path. Do not use on directories.\n  - write_file: Write content to a relative path, creating parent directories as needed. Creates a new file or overwrites an existing one.\n  - edit_file: Replace an exact old_str with new_str in a file. old_str must appear exactly once; empty old_str creates the file.\n  - mount_plugin: Mount (or re-mount, after an edit) a Cordis plugin file from the workspace into the live Context. Returns the real settled Fiber state and any error. This is how you activate and test what you just wrote.\n  - cordis_inspect_list: List every plugin currently mounted in the live Cordis Context right now: its id (matching the canvas), real fiber state (PENDING/LOADING/ACTIVE/FAILED/UNLOADING/DISPOSED), and declared inject list. Read-only - cannot mount, unmount, or invoke anything.\n  - cordis_inspect_query: Look up one currently-mounted plugin by the exact id from cordis_inspect_list, and report its real fiber state, its declared inject list, and for each injected service name whether it currently resolves to a real provider or is still missing. Read-only.\n  - run_workspace_agent_turn: Run one real turn through the agent-loop YOU built and mounted in this workspace (the plugin providing the \"agentLoop\" service). Give it a real task. This calls its real runTurn(task) method - a real LLM call, real tool calls, against this same shared workspace.\n\nKeep your prose short - the person is watching every step live on a canvas\nthat shows each plugin as a node and its real state. Narrate briefly, then act.\n\nWorkspace right now:\nREADME.md\ndocs/\ndocs/README.md\ndocs/coding-agent-harness.md\ndocs/plugin-basics.md\ndocs/verifying-your-work.md\nhello-plugin.mjs\npackage.json\npnpm-workspace.yaml\nrun.mjs"
+              },
+              {
+                "role": "user",
+                "content": "In one short paragraph, what's the difference between a plain chat UI and a coding agent? Nothing to build yet - chapter 17 starts the real build."
+              }
+            ],
+            "tools": [
+              {
+                "name": "list_files",
+                "description": "List files and directories at a relative path (default \".\"). Returns names only.",
+                "input_schema": {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "type": "string",
+                      "description": "Relative path to list. Defaults to the workspace root."
+                    }
+                  }
+                }
+              },
+              {
+                "name": "read_file",
+                "description": "Read the full contents of a file by relative path. Do not use on directories.",
+                "input_schema": {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "type": "string",
+                      "description": "Relative path to the file."
+                    }
+                  },
+                  "required": [
+                    "path"
+                  ]
+                }
+              },
+              {
+                "name": "write_file",
+                "description": "Write content to a relative path, creating parent directories as needed. Creates a new file or overwrites an existing one.",
+                "input_schema": {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "type": "string",
+                      "description": "Relative path to the file."
+                    },
+                    "content": {
+                      "type": "string",
+                      "description": "Full file content."
+                    }
+                  },
+                  "required": [
+                    "path",
+                    "content"
+                  ]
+                }
+              },
+              {
+                "name": "edit_file",
+                "description": "Replace an exact old_str with new_str in a file. old_str must appear exactly once; empty old_str creates the file.",
+                "input_schema": {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "type": "string",
+                      "description": "Relative path to the file."
+                    },
+                    "old_str": {
+                      "type": "string",
+                      "description": "Exact text to find. Empty to create the file."
+                    },
+                    "new_str": {
+                      "type": "string",
+                      "description": "Replacement text."
+                    }
+                  },
+                  "required": [
+                    "path",
+                    "old_str",
+                    "new_str"
+                  ]
+                }
+              },
+              {
+                "name": "mount_plugin",
+                "description": "Mount (or re-mount, after an edit) a Cordis plugin file from the workspace into the live Context. Returns the real settled Fiber state and any error. This is how you activate and test what you just wrote.",
+                "input_schema": {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "type": "string",
+                      "description": "Relative path to the plugin file (e.g. \"hello-plugin.mjs\")."
+                    },
+                    "config": {
+                      "type": "object",
+                      "description": "Optional plugin config object."
+                    }
+                  },
+                  "required": [
+                    "path"
+                  ]
+                }
+              },
+              {
+                "name": "cordis_inspect_list",
+                "description": "List every plugin currently mounted in the live Cordis Context right now: its id (matching the canvas), real fiber state (PENDING/LOADING/ACTIVE/FAILED/UNLOADING/DISPOSED), and declared inject list. Read-only - cannot mount, unmount, or invoke anything.",
+                "input_schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              },
+              {
+                "name": "cordis_inspect_query",
+                "description": "Look up one currently-mounted plugin by the exact id from cordis_inspect_list, and report its real fiber state, its declared inject list, and for each injected service name whether it currently resolves to a real provider or is still missing. Read-only.",
+                "input_schema": {
+                  "type": "object",
+                  "properties": {
+                    "pluginId": {
+                      "type": "string",
+                      "description": "Exact id from cordis_inspect_list, e.g. \"AgentLoop#3\"."
+                    }
+                  },
+                  "required": [
+                    "pluginId"
+                  ]
+                }
+              },
+              {
+                "name": "run_workspace_agent_turn",
+                "description": "Run one real turn through the agent-loop YOU built and mounted in this workspace (the plugin providing the \"agentLoop\" service). Give it a real task. This calls its real runTurn(task) method - a real LLM call, real tool calls, against this same shared workspace.",
+                "input_schema": {
+                  "type": "object",
+                  "properties": {
+                    "task": {
+                      "type": "string",
+                      "description": "The task to give the workspace agent."
+                    }
+                  },
+                  "required": [
+                    "task"
+                  ]
+                }
+              }
+            ]
+          },
+          "cacheableMessageCount": 0
+        },
+        {
+          "type": "llm_response",
+          "text": "",
+          "toolCalls": [
+            {
+              "id": "call_00_sqOz5AO79GMzJmXJOI507569",
+              "name": "read_file",
+              "input": {
+                "path": "docs/coding-agent-harness.md"
+              }
+            },
+            {
+              "id": "call_01_cHJEIJ13ZtRTWAJNB1HI6860",
+              "name": "read_file",
+              "input": {
+                "path": "docs/README.md"
+              }
+            }
+          ],
+          "stopReason": "tool_use",
+          "usage": {
+            "input_tokens": 1860,
+            "output_tokens": 150,
+            "cacheHitTokens": 0,
+            "cacheMissTokens": 1860
+          },
+          "raw": {
+            "url": "https://api.deepseek.com/v1/chat/completions",
+            "model": "deepseek-flash",
+            "text": "",
+            "toolCalls": [
+              {
+                "id": "call_00_sqOz5AO79GMzJmXJOI507569",
+                "name": "read_file",
+                "input": {
+                  "path": "docs/coding-agent-harness.md"
+                }
+              },
+              {
+                "id": "call_01_cHJEIJ13ZtRTWAJNB1HI6860",
+                "name": "read_file",
+                "input": {
+                  "path": "docs/README.md"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "status",
+          "status": "executing-tools"
+        },
+        {
+          "type": "tool_call_start",
+          "toolCall": {
+            "id": "call_00_sqOz5AO79GMzJmXJOI507569",
+            "name": "read_file",
+            "input": {
+              "path": "docs/coding-agent-harness.md"
+            }
+          }
+        },
+        {
+          "type": "tool_result",
+          "toolCallId": "call_00_sqOz5AO79GMzJmXJOI507569",
+          "name": "read_file",
+          "input": {
+            "path": "docs/coding-agent-harness.md"
+          },
+          "result": "# Building the coding-agent harness (Volume 2)\n\nThis curriculum has you build a real, working coding agent entirely\nout of Cordis plugins, in this same workspace - one service at a\ntime, in this exact dependency order:\n\n```text\ntools -> contextWindow -> compaction -> systemPrompt -> llm\n```\n\nwith an `agentLoop` Service (`static inject = ['tools', 'llm',\n'systemPrompt']`) that stays PENDING until all three of those exist -\nsee `docs/plugin-basics.md` for why that is the correct, healthy\nstate, not a bug to work around.\n\nA plugin file mounted via mount_plugin runs as a real ES module in\nthis same Node process - full access to Node builtins, no special\nhelper object beyond `ctx`. Two conventions every such plugin needs,\nmatching what this workspace's own `run.mjs` already does for real:\n\n- Resolve paths relative to the PLUGIN FILE, not the server's cwd:\n  `const dir = path.dirname(fileURLToPath(import.meta.url))`, then\n  build paths under `dir` - this also makes the file work unmodified\n  once the workspace is copied elsewhere and run standalone (see\n  `run.mjs` and `pnpm-workspace.yaml` in this directory).\n- Read LLM credentials from `process.env.CORDIS_AGENT_PROVIDER` /\n  `_MODEL` / `_API_KEY` / `_BASE_URL` - already set from whatever is\n  configured in Settings. Never ask the user for the key and never\n  write it into a file; read it from the environment only.\n",
+          "isError": false,
+          "durationMs": 1
+        },
+        {
+          "type": "tool_call_start",
+          "toolCall": {
+            "id": "call_01_cHJEIJ13ZtRTWAJNB1HI6860",
+            "name": "read_file",
+            "input": {
+              "path": "docs/README.md"
+            }
+          }
+        },
+        {
+          "type": "tool_result",
+          "toolCallId": "call_01_cHJEIJ13ZtRTWAJNB1HI6860",
+          "name": "read_file",
+          "input": {
+            "path": "docs/README.md"
+          },
+          "result": "# Cordis architecture docs\n\nRead the file for your current topic before implementing - do not\nguess from memory of a similar plugin. Follow any `see docs/...`\ncross-reference before writing code.\n\n| Topic | File |\n|---|---|\n| Plugin shape, provide/inject, Fiber lifecycle, ctx.effect | `docs/plugin-basics.md` |\n| The coding-agent-harness build (tools/llm/contextWindow/compaction/systemPrompt/agentLoop) | `docs/coding-agent-harness.md` |\n| How to confirm a plugin really works, before claiming it does | `docs/verifying-your-work.md` |\n\nReal, mountable example of the shape `docs/plugin-basics.md` describes:\n`hello-plugin.mjs` in this same directory.\n",
+          "isError": false,
+          "durationMs": 0
+        },
+        {
+          "type": "loop_end",
+          "iteration": 1,
+          "stopReason": "tool_use",
+          "usage": {
+            "input_tokens": 1860,
+            "output_tokens": 150,
+            "cacheHitTokens": 0,
+            "cacheMissTokens": 1860
+          },
+          "totalTokens": 2010
+        },
+        {
+          "type": "loop_start",
+          "iteration": 2,
+          "maxSteps": 25,
+          "contextTokens": 1366,
+          "messageCount": 4
+        },
+        {
+          "type": "status",
+          "status": "calling-llm"
+        },
+        {
+          "type": "llm_request",
+          "provider": "deepseek",
+          "model": "deepseek-flash",
+          "url": "https://api.deepseek.com/v1",
+          "messageCount": 4,
+          "tools": [
+            "list_files",
+            "read_file",
+            "write_file",
+            "edit_file",
+            "mount_plugin",
+            "cordis_inspect_list",
+            "cordis_inspect_query",
+            "run_workspace_agent_turn"
+          ],
+          "payload": {
+            "messages": [
+              {
+                "role": "system",
+                "content": "You are a coding agent practicing how to build Cordis plugins, running inside\na live visualizer connected to a REAL @deepseek-ai/cordis Context. Everything\nyou do is real: files you write land on disk, and mount_plugin activates them\nin an actual Context - not a simulation. You work only inside a sandboxed\nworkspace directory (relative paths only).\n\nCordis architecture docs (read the one for your topic BEFORE implementing;\nfollow `see docs/...` cross-references; do not guess from memory):\n- Index / topic router: docs/README.md\n- Plugin shape, provide/inject, Fiber lifecycle, ctx.effect: docs/plugin-basics.md\n- Building the coding-agent harness (tools/llm/contextWindow/compaction/\n  systemPrompt/agentLoop, path + credential conventions): docs/coding-agent-harness.md\n- Confirming a plugin really works: docs/verifying-your-work.md\n- Real mountable example of the plugin shape: hello-plugin.mjs\n\nRules for every task:\n- Loop: write_file/edit_file a plugin, mount_plugin it, read the returned real\n  Fiber state. ACTIVE = worked. PENDING = an unmet inject (healthy, not broken).\n  FAILED = apply() threw - fix the real error.\n- Never claim a plugin works, or state its live Fiber state / inject list, from\n  memory. Verify with mount_plugin's result or cordis_inspect_list ->\n  cordis_inspect_query.\n\nYour tools:\n  - list_files: List files and directories at a relative path (default \".\"). Returns names only.\n  - read_file: Read the full contents of a file by relative path. Do not use on directories.\n  - write_file: Write content to a relative path, creating parent directories as needed. Creates a new file or overwrites an existing one.\n  - edit_file: Replace an exact old_str with new_str in a file. old_str must appear exactly once; empty old_str creates the file.\n  - mount_plugin: Mount (or re-mount, after an edit) a Cordis plugin file from the workspace into the live Context. Returns the real settled Fiber state and any error. This is how you activate and test what you just wrote.\n  - cordis_inspect_list: List every plugin currently mounted in the live Cordis Context right now: its id (matching the canvas), real fiber state (PENDING/LOADING/ACTIVE/FAILED/UNLOADING/DISPOSED), and declared inject list. Read-only - cannot mount, unmount, or invoke anything.\n  - cordis_inspect_query: Look up one currently-mounted plugin by the exact id from cordis_inspect_list, and report its real fiber state, its declared inject list, and for each injected service name whether it currently resolves to a real provider or is still missing. Read-only.\n  - run_workspace_agent_turn: Run one real turn through the agent-loop YOU built and mounted in this workspace (the plugin providing the \"agentLoop\" service). Give it a real task. This calls its real runTurn(task) method - a real LLM call, real tool calls, against this same shared workspace.\n\nKeep your prose short - the person is watching every step live on a canvas\nthat shows each plugin as a node and its real state. Narrate briefly, then act.\n\nWorkspace right now:\nREADME.md\ndocs/\ndocs/README.md\ndocs/coding-agent-harness.md\ndocs/plugin-basics.md\ndocs/verifying-your-work.md\nhello-plugin.mjs\npackage.json\npnpm-workspace.yaml\nrun.mjs"
+              },
+              {
+                "role": "user",
+                "content": "In one short paragraph, what's the difference between a plain chat UI and a coding agent? Nothing to build yet - chapter 17 starts the real build."
+              },
+              {
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "call_00_sqOz5AO79GMzJmXJOI507569",
+                    "name": "read_file",
+                    "input": {
+                      "path": "docs/coding-agent-harness.md"
+                    }
+                  },
+                  {
+                    "type": "tool_use",
+                    "id": "call_01_cHJEIJ13ZtRTWAJNB1HI6860",
+                    "name": "read_file",
+                    "input": {
+                      "path": "docs/README.md"
+                    }
+                  }
+                ]
+              },
+              {
+                "role": "user",
+                "content": [
+                  {
+                    "type": "tool_result",
+                    "tool_use_id": "call_00_sqOz5AO79GMzJmXJOI507569",
+                    "content": "# Building the coding-agent harness (Volume 2)\n\nThis curriculum has you build a real, working coding agent entirely\nout of Cordis plugins, in this same workspace - one service at a\ntime, in this exact dependency order:\n\n```text\ntools -> contextWindow -> compaction -> systemPrompt -> llm\n```\n\nwith an `agentLoop` Service (`static inject = ['tools', 'llm',\n'systemPrompt']`) that stays PENDING until all three of those exist -\nsee `docs/plugin-basics.md` for why that is the correct, healthy\nstate, not a bug to work around.\n\nA plugin file mounted via mount_plugin runs as a real ES module in\nthis same Node process - full access to Node builtins, no special\nhelper object beyond `ctx`. Two conventions every such plugin needs,\nmatching what this workspace's own `run.mjs` already does for real:\n\n- Resolve paths relative to the PLUGIN FILE, not the server's cwd:\n  `const dir = path.dirname(fileURLToPath(import.meta.url))`, then\n  build paths under `dir` - this also makes the file work unmodified\n  once the workspace is copied elsewhere and run standalone (see\n  `run.mjs` and `pnpm-workspace.yaml` in this directory).\n- Read LLM credentials from `process.env.CORDIS_AGENT_PROVIDER` /\n  `_MODEL` / `_API_KEY` / `_BASE_URL` - already set from whatever is\n  configured in Settings. Never ask the user for the key and never\n  write it into a file; read it from the environment only.\n",
+                    "is_error": false
+                  },
+                  {
+                    "type": "tool_result",
+                    "tool_use_id": "call_01_cHJEIJ13ZtRTWAJNB1HI6860",
+                    "content": "# Cordis architecture docs\n\nRead the file for your current topic before implementing - do not\nguess from memory of a similar plugin. Follow any `see docs/...`\ncross-reference before writing code.\n\n| Topic | File |\n|---|---|\n| Plugin shape, provide/inject, Fiber lifecycle, ctx.effect | `docs/plugin-basics.md` |\n| The coding-agent-harness build (tools/llm/contextWindow/compaction/systemPrompt/agentLoop) | `docs/coding-agent-harness.md` |\n| How to confirm a plugin really works, before claiming it does | `docs/verifying-your-work.md` |\n\nReal, mountable example of the shape `docs/plugin-basics.md` describes:\n`hello-plugin.mjs` in this same directory.\n",
+                    "is_error": false
+                  }
+                ]
+              }
+            ],
+            "tools": [
+              {
+                "name": "list_files",
+                "description": "List files and directories at a relative path (default \".\"). Returns names only.",
+                "input_schema": {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "type": "string",
+                      "description": "Relative path to list. Defaults to the workspace root."
+                    }
+                  }
+                }
+              },
+              {
+                "name": "read_file",
+                "description": "Read the full contents of a file by relative path. Do not use on directories.",
+                "input_schema": {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "type": "string",
+                      "description": "Relative path to the file."
+                    }
+                  },
+                  "required": [
+                    "path"
+                  ]
+                }
+              },
+              {
+                "name": "write_file",
+                "description": "Write content to a relative path, creating parent directories as needed. Creates a new file or overwrites an existing one.",
+                "input_schema": {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "type": "string",
+                      "description": "Relative path to the file."
+                    },
+                    "content": {
+                      "type": "string",
+                      "description": "Full file content."
+                    }
+                  },
+                  "required": [
+                    "path",
+                    "content"
+                  ]
+                }
+              },
+              {
+                "name": "edit_file",
+                "description": "Replace an exact old_str with new_str in a file. old_str must appear exactly once; empty old_str creates the file.",
+                "input_schema": {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "type": "string",
+                      "description": "Relative path to the file."
+                    },
+                    "old_str": {
+                      "type": "string",
+                      "description": "Exact text to find. Empty to create the file."
+                    },
+                    "new_str": {
+                      "type": "string",
+                      "description": "Replacement text."
+                    }
+                  },
+                  "required": [
+                    "path",
+                    "old_str",
+                    "new_str"
+                  ]
+                }
+              },
+              {
+                "name": "mount_plugin",
+                "description": "Mount (or re-mount, after an edit) a Cordis plugin file from the workspace into the live Context. Returns the real settled Fiber state and any error. This is how you activate and test what you just wrote.",
+                "input_schema": {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "type": "string",
+                      "description": "Relative path to the plugin file (e.g. \"hello-plugin.mjs\")."
+                    },
+                    "config": {
+                      "type": "object",
+                      "description": "Optional plugin config object."
+                    }
+                  },
+                  "required": [
+                    "path"
+                  ]
+                }
+              },
+              {
+                "name": "cordis_inspect_list",
+                "description": "List every plugin currently mounted in the live Cordis Context right now: its id (matching the canvas), real fiber state (PENDING/LOADING/ACTIVE/FAILED/UNLOADING/DISPOSED), and declared inject list. Read-only - cannot mount, unmount, or invoke anything.",
+                "input_schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              },
+              {
+                "name": "cordis_inspect_query",
+                "description": "Look up one currently-mounted plugin by the exact id from cordis_inspect_list, and report its real fiber state, its declared inject list, and for each injected service name whether it currently resolves to a real provider or is still missing. Read-only.",
+                "input_schema": {
+                  "type": "object",
+                  "properties": {
+                    "pluginId": {
+                      "type": "string",
+                      "description": "Exact id from cordis_inspect_list, e.g. \"AgentLoop#3\"."
+                    }
+                  },
+                  "required": [
+                    "pluginId"
+                  ]
+                }
+              },
+              {
+                "name": "run_workspace_agent_turn",
+                "description": "Run one real turn through the agent-loop YOU built and mounted in this workspace (the plugin providing the \"agentLoop\" service). Give it a real task. This calls its real runTurn(task) method - a real LLM call, real tool calls, against this same shared workspace.",
+                "input_schema": {
+                  "type": "object",
+                  "properties": {
+                    "task": {
+                      "type": "string",
+                      "description": "The task to give the workspace agent."
+                    }
+                  },
+                  "required": [
+                    "task"
+                  ]
+                }
+              }
+            ]
+          },
+          "cacheableMessageCount": 2
+        },
+        {
+          "type": "llm_delta",
+          "text": "A"
+        },
+        {
+          "type": "llm_delta",
+          "text": " plain"
+        },
+        {
+          "type": "llm_delta",
+          "text": " chat"
+        },
+        {
+          "type": "llm_delta",
+          "text": " UI"
+        },
+        {
+          "type": "llm_delta",
+          "text": " is"
+        },
+        {
+          "type": "llm_delta",
+          "text": " a"
+        },
+        {
+          "type": "llm_delta",
+          "text": " stat"
+        },
+        {
+          "type": "llm_delta",
+          "text": "eless"
+        },
+        {
+          "type": "llm_delta",
+          "text": " text"
+        },
+        {
+          "type": "llm_delta",
+          "text": "-in"
+        },
+        {
+          "type": "llm_delta",
+          "text": "/text"
+        },
+        {
+          "type": "llm_delta",
+          "text": "-out"
+        },
+        {
+          "type": "llm_delta",
+          "text": " loop"
+        },
+        {
+          "type": "llm_delta",
+          "text": ":"
+        },
+        {
+          "type": "llm_delta",
+          "text": " you"
+        },
+        {
+          "type": "llm_delta",
+          "text": " send"
+        },
+        {
+          "type": "llm_delta",
+          "text": " a"
+        },
+        {
+          "type": "llm_delta",
+          "text": " message"
+        },
+        {
+          "type": "llm_delta",
+          "text": ","
+        },
+        {
+          "type": "llm_delta",
+          "text": " the"
+        },
+        {
+          "type": "llm_delta",
+          "text": " model"
+        },
+        {
+          "type": "llm_delta",
+          "text": " sends"
+        },
+        {
+          "type": "llm_delta",
+          "text": " back"
+        },
+        {
+          "type": "llm_delta",
+          "text": " a"
+        },
+        {
+          "type": "llm_delta",
+          "text": " message"
+        },
+        {
+          "type": "llm_delta",
+          "text": ","
+        },
+        {
+          "type": "llm_delta",
+          "text": " and"
+        },
+        {
+          "type": "llm_delta",
+          "text": " the"
+        },
+        {
+          "type": "llm_delta",
+          "text": " only"
+        },
+        {
+          "type": "llm_delta",
+          "text": " thing"
+        },
+        {
+          "type": "llm_delta",
+          "text": " carrying"
+        },
+        {
+          "type": "llm_delta",
+          "text": " state"
+        },
+        {
+          "type": "llm_delta",
+          "text": " between"
+        },
+        {
+          "type": "llm_delta",
+          "text": " turns"
+        },
+        {
+          "type": "llm_delta",
+          "text": " is"
+        },
+        {
+          "type": "llm_delta",
+          "text": " the"
+        },
+        {
+          "type": "llm_delta",
+          "text": " transcript"
+        },
+        {
+          "type": "llm_delta",
+          "text": " itself"
+        },
+        {
+          "type": "llm_delta",
+          "text": " —"
+        },
+        {
+          "type": "llm_delta",
+          "text": " it"
+        },
+        {
+          "type": "llm_delta",
+          "text": " can"
+        },
+        {
+          "type": "llm_delta",
+          "text": " *"
+        },
+        {
+          "type": "llm_delta",
+          "text": "tell"
+        },
+        {
+          "type": "llm_delta",
+          "text": "*"
+        },
+        {
+          "type": "llm_delta",
+          "text": " you"
+        },
+        {
+          "type": "llm_delta",
+          "text": " what"
+        },
+        {
+          "type": "llm_delta",
+          "text": " code"
+        },
+        {
+          "type": "llm_delta",
+          "text": " to"
+        },
+        {
+          "type": "llm_delta",
+          "text": " write"
+        },
+        {
+          "type": "llm_delta",
+          "text": ","
+        },
+        {
+          "type": "llm_delta",
+          "text": " but"
+        },
+        {
+          "type": "llm_delta",
+          "text": " nothing"
+        },
+        {
+          "type": "llm_delta",
+          "text": " it"
+        },
+        {
+          "type": "llm_delta",
+          "text": " says"
+        },
+        {
+          "type": "llm_delta",
+          "text": " touches"
+        },
+        {
+          "type": "llm_delta",
+          "text": " the"
+        },
+        {
+          "type": "llm_delta",
+          "text": " world"
+        },
+        {
+          "type": "llm_delta",
+          "text": "."
+        },
+        {
+          "type": "llm_delta",
+          "text": " A"
+        },
+        {
+          "type": "llm_delta",
+          "text": " coding"
+        },
+        {
+          "type": "llm_delta",
+          "text": " agent"
+        },
+        {
+          "type": "llm_delta",
+          "text": " wraps"
+        },
+        {
+          "type": "llm_delta",
+          "text": " that"
+        },
+        {
+          "type": "llm_delta",
+          "text": " same"
+        },
+        {
+          "type": "llm_delta",
+          "text": " model"
+        },
+        {
+          "type": "llm_delta",
+          "text": " call"
+        },
+        {
+          "type": "llm_delta",
+          "text": " in"
+        },
+        {
+          "type": "llm_delta",
+          "text": " a"
+        },
+        {
+          "type": "llm_delta",
+          "text": " harness"
+        },
+        {
+          "type": "llm_delta",
+          "text": " of"
+        },
+        {
+          "type": "llm_delta",
+          "text": " Cord"
+        },
+        {
+          "type": "llm_delta",
+          "text": "is"
+        },
+        {
+          "type": "llm_delta",
+          "text": " services"
+        },
+        {
+          "type": "llm_delta",
+          "text": ":"
+        },
+        {
+          "type": "llm_delta",
+          "text": " a"
+        },
+        {
+          "type": "llm_delta",
+          "text": " `"
+        },
+        {
+          "type": "llm_delta",
+          "text": "tools"
+        },
+        {
+          "type": "llm_delta",
+          "text": "`"
+        },
+        {
+          "type": "llm_delta",
+          "text": " registry"
+        },
+        {
+          "type": "llm_delta",
+          "text": " that"
+        },
+        {
+          "type": "llm_delta",
+          "text": " gives"
+        },
+        {
+          "type": "llm_delta",
+          "text": " the"
+        },
+        {
+          "type": "llm_delta",
+          "text": " model"
+        },
+        {
+          "type": "llm_delta",
+          "text": " real"
+        },
+        {
+          "type": "llm_delta",
+          "text": ","
+        },
+        {
+          "type": "llm_delta",
+          "text": " executable"
+        },
+        {
+          "type": "llm_delta",
+          "text": " capabilities"
+        },
+        {
+          "type": "llm_delta",
+          "text": " ("
+        },
+        {
+          "type": "llm_delta",
+          "text": "read"
+        },
+        {
+          "type": "llm_delta",
+          "text": "/w"
+        },
+        {
+          "type": "llm_delta",
+          "text": "rite"
+        },
+        {
+          "type": "llm_delta",
+          "text": " files"
+        },
+        {
+          "type": "llm_delta",
+          "text": ","
+        },
+        {
+          "type": "llm_delta",
+          "text": " run"
+        },
+        {
+          "type": "llm_delta",
+          "text": " commands"
+        },
+        {
+          "type": "llm_delta",
+          "text": "),"
+        },
+        {
+          "type": "llm_delta",
+          "text": " a"
+        },
+        {
+          "type": "llm_delta",
+          "text": " `"
+        },
+        {
+          "type": "llm_delta",
+          "text": "context"
+        },
+        {
+          "type": "llm_delta",
+          "text": "Window"
+        },
+        {
+          "type": "llm_delta",
+          "text": "`"
+        },
+        {
+          "type": "llm_delta",
+          "text": " +"
+        },
+        {
+          "type": "llm_delta",
+          "text": " `"
+        },
+        {
+          "type": "llm_delta",
+          "text": "comp"
+        },
+        {
+          "type": "llm_delta",
+          "text": "action"
+        },
+        {
+          "type": "llm_delta",
+          "text": "`"
+        },
+        {
+          "type": "llm_delta",
+          "text": " layer"
+        },
+        {
+          "type": "llm_delta",
+          "text": " that"
+        },
+        {
+          "type": "llm_delta",
+          "text": " decides"
+        },
+        {
+          "type": "llm_delta",
+          "text": " what"
+        },
+        {
+          "type": "llm_delta",
+          "text": " of"
+        },
+        {
+          "type": "llm_delta",
+          "text": " the"
+        },
+        {
+          "type": "llm_delta",
+          "text": " transcript"
+        },
+        {
+          "type": "llm_delta",
+          "text": " actually"
+        },
+        {
+          "type": "llm_delta",
+          "text": " fits"
+        },
+        {
+          "type": "llm_delta",
+          "text": " in"
+        },
+        {
+          "type": "llm_delta",
+          "text": " the"
+        },
+        {
+          "type": "llm_delta",
+          "text": " prompt"
+        },
+        {
+          "type": "llm_delta",
+          "text": " and"
+        },
+        {
+          "type": "llm_delta",
+          "text": " summarizes"
+        },
+        {
+          "type": "llm_delta",
+          "text": " the"
+        },
+        {
+          "type": "llm_delta",
+          "text": " rest"
+        },
+        {
+          "type": "llm_delta",
+          "text": ","
+        },
+        {
+          "type": "llm_delta",
+          "text": " a"
+        },
+        {
+          "type": "llm_delta",
+          "text": " `"
+        },
+        {
+          "type": "llm_delta",
+          "text": "system"
+        },
+        {
+          "type": "llm_delta",
+          "text": "Prompt"
+        },
+        {
+          "type": "llm_delta",
+          "text": "`"
+        },
+        {
+          "type": "llm_delta",
+          "text": " service"
+        },
+        {
+          "type": "llm_delta",
+          "text": " that"
+        },
+        {
+          "type": "llm_delta",
+          "text": " inject"
+        },
+        {
+          "type": "llm_delta",
+          "text": "s"
+        },
+        {
+          "type": "llm_delta",
+          "text": " the"
+        },
+        {
+          "type": "llm_delta",
+          "text": " working"
+        },
+        {
+          "type": "llm_delta",
+          "text": " conventions"
+        },
+        {
+          "type": "llm_delta",
+          "text": ","
+        },
+        {
+          "type": "llm_delta",
+          "text": " and"
+        },
+        {
+          "type": "llm_delta",
+          "text": " an"
+        },
+        {
+          "type": "llm_delta",
+          "text": " `"
+        },
+        {
+          "type": "llm_delta",
+          "text": "agent"
+        },
+        {
+          "type": "llm_delta",
+          "text": "Loop"
+        },
+        {
+          "type": "llm_delta",
+          "text": "`"
+        },
+        {
+          "type": "llm_delta",
+          "text": " that"
+        },
+        {
+          "type": "llm_delta",
+          "text": " drives"
+        },
+        {
+          "type": "llm_delta",
+          "text": " the"
+        },
+        {
+          "type": "llm_delta",
+          "text": " multi"
+        },
+        {
+          "type": "llm_delta",
+          "text": "-turn"
+        },
+        {
+          "type": "llm_delta",
+          "text": " cycle"
+        },
+        {
+          "type": "llm_delta",
+          "text": " of"
+        },
+        {
+          "type": "llm_delta",
+          "text": " \""
+        },
+        {
+          "type": "llm_delta",
+          "text": "model"
+        },
+        {
+          "type": "llm_delta",
+          "text": " proposes"
+        },
+        {
+          "type": "llm_delta",
+          "text": " tool"
+        },
+        {
+          "type": "llm_delta",
+          "text": " call"
+        },
+        {
+          "type": "llm_delta",
+          "text": " →"
+        },
+        {
+          "type": "llm_delta",
+          "text": " harness"
+        },
+        {
+          "type": "llm_delta",
+          "text": " executes"
+        },
+        {
+          "type": "llm_delta",
+          "text": " it"
+        },
+        {
+          "type": "llm_delta",
+          "text": " →"
+        },
+        {
+          "type": "llm_delta",
+          "text": " result"
+        },
+        {
+          "type": "llm_delta",
+          "text": " goes"
+        },
+        {
+          "type": "llm_delta",
+          "text": " back"
+        },
+        {
+          "type": "llm_delta",
+          "text": " into"
+        },
+        {
+          "type": "llm_delta",
+          "text": " the"
+        },
+        {
+          "type": "llm_delta",
+          "text": " context"
+        },
+        {
+          "type": "llm_delta",
+          "text": "\""
+        },
+        {
+          "type": "llm_delta",
+          "text": " until"
+        },
+        {
+          "type": "llm_delta",
+          "text": " the"
+        },
+        {
+          "type": "llm_delta",
+          "text": " task"
+        },
+        {
+          "type": "llm_delta",
+          "text": " is"
+        },
+        {
+          "type": "llm_delta",
+          "text": " done"
+        },
+        {
+          "type": "llm_delta",
+          "text": " —"
+        },
+        {
+          "type": "llm_delta",
+          "text": " so"
+        },
+        {
+          "type": "llm_delta",
+          "text": " the"
+        },
+        {
+          "type": "llm_delta",
+          "text": " model"
+        },
+        {
+          "type": "llm_delta",
+          "text": "'s"
+        },
+        {
+          "type": "llm_delta",
+          "text": " output"
+        },
+        {
+          "type": "llm_delta",
+          "text": " becomes"
+        },
+        {
+          "type": "llm_delta",
+          "text": " real"
+        },
+        {
+          "type": "llm_delta",
+          "text": " side"
+        },
+        {
+          "type": "llm_delta",
+          "text": " effects"
+        },
+        {
+          "type": "llm_delta",
+          "text": " on"
+        },
+        {
+          "type": "llm_delta",
+          "text": " disk"
+        },
+        {
+          "type": "llm_delta",
+          "text": ","
+        },
+        {
+          "type": "llm_delta",
+          "text": " and"
+        },
+        {
+          "type": "llm_delta",
+          "text": " the"
+        },
+        {
+          "type": "llm_delta",
+          "text": " loop"
+        },
+        {
+          "type": "llm_delta",
+          "text": ","
+        },
+        {
+          "type": "llm_delta",
+          "text": " not"
+        },
+        {
+          "type": "llm_delta",
+          "text": " the"
+        },
+        {
+          "type": "llm_delta",
+          "text": " human"
+        },
+        {
+          "type": "llm_delta",
+          "text": ","
+        },
+        {
+          "type": "llm_delta",
+          "text": " decides"
+        },
+        {
+          "type": "llm_delta",
+          "text": " when"
+        },
+        {
+          "type": "llm_delta",
+          "text": " to"
+        },
+        {
+          "type": "llm_delta",
+          "text": " go"
+        },
+        {
+          "type": "llm_delta",
+          "text": " again"
+        },
+        {
+          "type": "llm_delta",
+          "text": "."
+        },
+        {
+          "type": "llm_response",
+          "text": "A plain chat UI is a stateless text-in/text-out loop: you send a message, the model sends back a message, and the only thing carrying state between turns is the transcript itself — it can *tell* you what code to write, but nothing it says touches the world. A coding agent wraps that same model call in a harness of Cordis services: a `tools` registry that gives the model real, executable capabilities (read/write files, run commands), a `contextWindow` + `compaction` layer that decides what of the transcript actually fits in the prompt and summarizes the rest, a `systemPrompt` service that injects the working conventions, and an `agentLoop` that drives the multi-turn cycle of \"model proposes tool call → harness executes it → result goes back into the context\" until the task is done — so the model's output becomes real side effects on disk, and the loop, not the human, decides when to go again.",
+          "toolCalls": [],
+          "stopReason": "stop",
+          "usage": {
+            "input_tokens": 2545,
+            "output_tokens": 199,
+            "cacheHitTokens": 1920,
+            "cacheMissTokens": 625
+          },
+          "raw": {
+            "url": "https://api.deepseek.com/v1/chat/completions",
+            "model": "deepseek-flash",
+            "text": "A plain chat UI is a stateless text-in/text-out loop: you send a message, the model sends back a message, and the only thing carrying state between turns is the transcript itself — it can *tell* you what code to write, but nothing it says touches the world. A coding agent wraps that same model call in a harness of Cordis services: a `tools` registry that gives the model real, executable capabilities (read/write files, run commands), a `contextWindow` + `compaction` layer that decides what of the transcript actually fits in the prompt and summarizes the rest, a `systemPrompt` service that injects the working conventions, and an `agentLoop` that drives the multi-turn cycle of \"model proposes tool call → harness executes it → result goes back into the context\" until the task is done — so the model's output becomes real side effects on disk, and the loop, not the human, decides when to go again.",
+            "toolCalls": []
+          }
+        },
+        {
+          "type": "assistant_message",
+          "text": "A plain chat UI is a stateless text-in/text-out loop: you send a message, the model sends back a message, and the only thing carrying state between turns is the transcript itself — it can *tell* you what code to write, but nothing it says touches the world. A coding agent wraps that same model call in a harness of Cordis services: a `tools` registry that gives the model real, executable capabilities (read/write files, run commands), a `contextWindow` + `compaction` layer that decides what of the transcript actually fits in the prompt and summarizes the rest, a `systemPrompt` service that injects the working conventions, and an `agentLoop` that drives the multi-turn cycle of \"model proposes tool call → harness executes it → result goes back into the context\" until the task is done — so the model's output becomes real side effects on disk, and the loop, not the human, decides when to go again."
+        },
+        {
+          "type": "loop_end",
+          "iteration": 2,
+          "stopReason": "stop",
+          "usage": {
+            "input_tokens": 2545,
+            "output_tokens": 199,
+            "cacheHitTokens": 1920,
+            "cacheMissTokens": 625
+          },
+          "totalTokens": 4754
+        },
+        {
+          "type": "turn_end",
+          "turn": 1,
+          "stopReason": "stop",
+          "totalTokens": 4754,
+          "steps": 2
+        },
+        {
+          "type": "status",
+          "status": "done"
+        }
+      ]
+    }
+  ],
+  "goal": {
+    "description": "the agent's final turn produces a non-empty assistant_message",
+    "passed": true,
+    "details": "A plain chat UI is a stateless text-in/text-out loop: you send a message, the model sends back a message, and the only thing carrying state between turns is the"
+  },
+  "finalFiles": [
+    "README.md",
+    "docs/",
+    "docs/README.md",
+    "docs/coding-agent-harness.md",
+    "docs/plugin-basics.md",
+    "docs/verifying-your-work.md",
+    "hello-plugin.mjs",
+    "package.json",
+    "pnpm-workspace.yaml",
+    "run.mjs"
+  ],
+  "totalTokens": 4754,
+  "totalSteps": 2,
+  "wallMs": 3587,
+  "usage": {
+    "llmCalls": 2,
+    "inputTokens": 4405,
+    "outputTokens": 349,
+    "cacheHitTokens": 1920,
+    "cacheMissTokens": 2485,
+    "cacheHitRate": 0.4358683314415437
+  }
+}
