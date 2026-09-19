@@ -1,0 +1,171 @@
+{
+  "runId": "aca89f6c",
+  "runFolder": "result-of-run-19-09-26-04-36AM-aca89f6c",
+  "runAt": "2026-09-19T02:36:49.959Z",
+  "provider": "deepseek",
+  "model": "deepseek-flash",
+  "baseURL": "https://api.deepseek.com/v1",
+  "chapters": [
+    {
+      "chapter": "16-what-is-an-agent",
+      "goalDescription": "the agent's final turn produces a non-empty assistant_message",
+      "goalPassed": true,
+      "goalDetails": "A plain chat UI is a single loop that turns tokens into text: you send a prompt, the model streams a reply, and the transcript is appended to history — the mode",
+      "tokens": 2777,
+      "steps": 1,
+      "wallMs": 2984,
+      "usage": {
+        "llmCalls": 1,
+        "inputTokens": 2375,
+        "outputTokens": 402,
+        "cacheHitTokens": 1152,
+        "cacheMissTokens": 1223,
+        "cacheHitRate": 0.48505263157894735
+      }
+    },
+    {
+      "chapter": "17-the-loop",
+      "goalDescription": "a workspace file matching /agent-loop\\.mjs$/ is written AND the fiber matching /agent-loop/ stays PENDING (never ACTIVE)",
+      "goalPassed": true,
+      "goalDetails": "[pass] a workspace file matching /agent-loop\\.mjs$/ is written: agent-loop.mjs (create) | [pass] the fiber matching /agent-loop/ stays PENDING (never ACTIVE): matching fiber(s) never reached ACTIVE",
+      "tokens": 70770,
+      "steps": 9,
+      "wallMs": 35363,
+      "usage": {
+        "llmCalls": 9,
+        "inputTokens": 64976,
+        "outputTokens": 5794,
+        "cacheHitTokens": 62208,
+        "cacheMissTokens": 2768,
+        "cacheHitRate": 0.9573996552573257
+      }
+    },
+    {
+      "chapter": "18-tools",
+      "goalDescription": "a workspace file matching /tools\\.mjs$/ is written",
+      "goalPassed": true,
+      "goalDetails": "tools.mjs (create)",
+      "tokens": 34198,
+      "steps": 4,
+      "wallMs": 14721,
+      "usage": {
+        "llmCalls": 4,
+        "inputTokens": 31238,
+        "outputTokens": 2960,
+        "cacheHitTokens": 25984,
+        "cacheMissTokens": 5254,
+        "cacheHitRate": 0.8318074140469941
+      }
+    },
+    {
+      "chapter": "19-context-window",
+      "goalDescription": "a workspace file matching /context-window\\.mjs$/ is written",
+      "goalPassed": true,
+      "goalDetails": "context-window.mjs (create)",
+      "tokens": 37711,
+      "steps": 4,
+      "wallMs": 10756,
+      "usage": {
+        "llmCalls": 4,
+        "inputTokens": 36183,
+        "outputTokens": 1528,
+        "cacheHitTokens": 28672,
+        "cacheMissTokens": 7511,
+        "cacheHitRate": 0.7924163281098858
+      }
+    },
+    {
+      "chapter": "20-cache-and-compact",
+      "goalDescription": "a workspace file matching /compaction\\.mjs$/ is written",
+      "goalPassed": true,
+      "goalDetails": "compaction.mjs (create)",
+      "tokens": 69579,
+      "steps": 6,
+      "wallMs": 15640,
+      "usage": {
+        "llmCalls": 6,
+        "inputTokens": 67163,
+        "outputTokens": 2416,
+        "cacheHitTokens": 57984,
+        "cacheMissTokens": 9179,
+        "cacheHitRate": 0.8633324896148177
+      }
+    },
+    {
+      "chapter": "21-system-prompt",
+      "goalDescription": "a workspace file matching /system-prompt\\.mjs$/ is written",
+      "goalPassed": true,
+      "goalDetails": "system-prompt.mjs (create)",
+      "tokens": 64388,
+      "steps": 5,
+      "wallMs": 11015,
+      "usage": {
+        "llmCalls": 5,
+        "inputTokens": 62918,
+        "outputTokens": 1470,
+        "cacheHitTokens": 51712,
+        "cacheMissTokens": 11206,
+        "cacheHitRate": 0.8218951651355733
+      }
+    },
+    {
+      "chapter": "22-providers",
+      "goalDescription": "agentLoop's fiber flips from PENDING to ACTIVE once llm.mjs is mounted",
+      "goalPassed": true,
+      "goalDetails": "agentLoop reached ACTIVE (PENDING->LOADING, LOADING->ACTIVE)",
+      "tokens": 83010,
+      "steps": 5,
+      "wallMs": 17952,
+      "usage": {
+        "llmCalls": 5,
+        "inputTokens": 79340,
+        "outputTokens": 3670,
+        "cacheHitTokens": 66432,
+        "cacheMissTokens": 12908,
+        "cacheHitRate": 0.8373077892614066
+      }
+    },
+    {
+      "chapter": "23-the-harness",
+      "goalDescription": "tool matching \"run_workspace_agent_turn\" runs without error",
+      "goalPassed": true,
+      "goalDetails": "run_workspace_agent_turn -> The workspace agent finished its turn. Check the workspace files and the live trace for what it actually did.",
+      "tokens": 169217,
+      "steps": 9,
+      "wallMs": 32640,
+      "usage": {
+        "llmCalls": 9,
+        "inputTokens": 166922,
+        "outputTokens": 2295,
+        "cacheHitTokens": 148992,
+        "cacheMissTokens": 17930,
+        "cacheHitRate": 0.8925845604533854
+      }
+    },
+    {
+      "chapter": "24-this-app",
+      "goalDescription": "the agent's final turn produces a non-empty assistant_message",
+      "goalPassed": true,
+      "goalDetails": "Read all six back from disk and checked the live graph. Short answer: **yes, the graph is real and complete as a chat-with-tools agent — with two honest caveats",
+      "tokens": 74252,
+      "steps": 3,
+      "wallMs": 13251,
+      "usage": {
+        "llmCalls": 3,
+        "inputTokens": 72170,
+        "outputTokens": 2082,
+        "cacheHitTokens": 62848,
+        "cacheMissTokens": 9322,
+        "cacheHitRate": 0.8708327559927947
+      }
+    }
+  ],
+  "totalUsage": {
+    "llmCalls": 46,
+    "inputTokens": 583285,
+    "outputTokens": 22617,
+    "cacheHitTokens": 505984,
+    "cacheMissTokens": 77301,
+    "cacheHitRate": 0.8674730191930189
+  }
+}

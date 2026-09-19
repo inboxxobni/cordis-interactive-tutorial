@@ -78,12 +78,21 @@ export class OpenAICompatibleProvider implements LLMProvider {
     let text = ''
     let stopReason = 'stop'
     const callMap = new Map<number, { id: string; name: string; args: string }>()
-    let usage = { input_tokens: 0, output_tokens: 0 }
+    let usage: { input_tokens: number; output_tokens: number; cacheHitTokens?: number; cacheMissTokens?: number } = { input_tokens: 0, output_tokens: 0 }
 
     for await (const data of parseSSE(res)) {
       const chunk = tryJson<{
         choices?: Array<{ delta?: { content?: string; tool_calls?: OpenAIToolCallDelta[] }; finish_reason?: string | null }>
-        usage?: { prompt_tokens?: number; completion_tokens?: number }
+        usage?: {
+          prompt_tokens?: number
+          completion_tokens?: number
+          // DeepSeek's real field names - its prompt caching is on by
+          // default, no opt-in, and reported on every response.
+          prompt_cache_hit_tokens?: number
+          prompt_cache_miss_tokens?: number
+          // Some other OpenAI-compatible providers report an equivalent this way instead.
+          prompt_tokens_details?: { cached_tokens?: number }
+        }
       }>(data)
       if (!chunk) continue
       const choice = chunk.choices?.[0]
@@ -99,7 +108,15 @@ export class OpenAICompatibleProvider implements LLMProvider {
         callMap.set(tc.index, existing)
       }
       if (choice?.finish_reason) stopReason = choice.finish_reason
-      if (chunk.usage) usage = { input_tokens: chunk.usage.prompt_tokens ?? 0, output_tokens: chunk.usage.completion_tokens ?? 0 }
+      if (chunk.usage) {
+        const cachedFromDetails = chunk.usage.prompt_tokens_details?.cached_tokens
+        usage = {
+          input_tokens: chunk.usage.prompt_tokens ?? 0,
+          output_tokens: chunk.usage.completion_tokens ?? 0,
+          cacheHitTokens: chunk.usage.prompt_cache_hit_tokens ?? cachedFromDetails,
+          cacheMissTokens: chunk.usage.prompt_cache_miss_tokens ?? (cachedFromDetails !== undefined ? (chunk.usage.prompt_tokens ?? 0) - cachedFromDetails : undefined),
+        }
+      }
     }
 
     const toolCalls: ToolCall[] = []

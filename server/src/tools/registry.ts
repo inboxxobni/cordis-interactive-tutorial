@@ -7,6 +7,8 @@ import type { Emit } from '../trace.js'
 import type { Instrumented } from '../cordis-instrumentation.js'
 import { listFiles, readFile, writeFile, editFile } from './files.js'
 import { mountPlugin } from './mount-plugin.js'
+import { cordisInspectList, cordisInspectQuery } from './inspect.js'
+import { runWorkspaceAgentTurn } from './run-workspace-agent.js'
 
 export interface ToolContext {
   workspace: Workspace
@@ -25,7 +27,7 @@ export interface Tool {
 }
 
 export function buildTools(): Tool[] {
-  return [listFiles, readFile, writeFile, editFile, mountPlugin]
+  return [listFiles, readFile, writeFile, editFile, mountPlugin, cordisInspectList, cordisInspectQuery, runWorkspaceAgentTurn]
 }
 
 export function toolDefinitions(tools: Tool[]): ToolDefinition[] {

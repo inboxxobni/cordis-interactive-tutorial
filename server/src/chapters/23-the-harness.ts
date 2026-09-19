@@ -1,17 +1,19 @@
 /**
- * Chapter 23: The harness. The exact same full composition as chapter 22 -
- * mounting it is inert, zero LLM spend. The Agent console's one suggestion
- * chip for this chapter is the explicit, deliberate trigger for a real
- * turn (see the `run_inner_agent` WS message in index.ts, and
- * instr.innerAgentLoop, set by composeAgentHarness -> mountAgentLoop).
+ * Chapter 23: The harness. No auto-mount - by now the connected agent has
+ * built all six real files into the workspace (agent-loop.mjs, tools.mjs,
+ * llm.mjs, system-prompt.mjs, context-window.mjs, compaction.mjs) and
+ * mounted them. This chapter's suggestion chip is the payoff: it calls the
+ * real run_workspace_agent_turn tool, driving one real turn through
+ * whatever the agent actually mounted under the 'agentLoop' service name -
+ * a real LLM call, real tool calls, against the same shared workspace.
  */
 import type { Chapter } from './types.js'
-import { composeAgentHarness } from './agent-harness/compose.js'
 
 export const chapter: Chapter = {
   id: '23-the-harness',
   title: 'The harness',
-  async run(instr) {
-    return composeAgentHarness(instr, { tools: true, contextWindow: true, compaction: true, systemPrompt: true, llm: true })
+  async run({ emit }) {
+    emit({ type: 'log', pluginId: null, message: 'Nothing auto-mounts here - if agent-loop.mjs is already mounted and ACTIVE, use the suggestion chip to run a real task through it.' })
+    return () => {}
   },
 }

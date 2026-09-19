@@ -1,0 +1,15 @@
+{
+  "name": "cordis-plugin-workspace",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node run.mjs",
+    "start": "node run.mjs"
+  },
+  "dependencies": {
+    "@deepseek-ai/cordis": "^4.0.2",
+    "@deepseek-ai/schemastery": "^3.18.2",
+    "@deepseek-ai/dsh-host-webserver": "0.1.5-alpha.1"
+  }
+}

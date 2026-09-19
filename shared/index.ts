@@ -362,6 +362,17 @@ export interface ToolCall {
 export interface LLMUsage {
   input_tokens: number;
   output_tokens: number;
+  /**
+   * Real prompt-cache accounting, when the provider reports it - DeepSeek's
+   * own API returns `prompt_cache_hit_tokens`/`prompt_cache_miss_tokens` on
+   * every response (its context-caching is on by default, no opt-in); other
+   * OpenAI-compatible providers may report an equivalent via
+   * `prompt_tokens_details.cached_tokens` instead. Undefined, not 0, when
+   * the provider didn't report it at all - 0 is a real "no cache hit this
+   * call", not "unknown".
+   */
+  cacheHitTokens?: number;
+  cacheMissTokens?: number;
 }
 
 export interface LLMResponse {
@@ -553,13 +564,6 @@ export type TraceEvent =
   | { type: "terminal_started"; shell: string }
   | { type: "terminal_output"; data: string }
   | { type: "terminal_exit"; exitCode: number }
-  // -- Volume 2's inner agent-loop: the same shapes above describe the
-  // tutorial's own outer meta-agent; these two describe the real, separate
-  // Cordis-plugin agent-loop chapters 17-23 build and mount, firing at the
-  // real moments it calls the llm/tools services so the canvas can flash
-  // the matching edge. --
-  | { type: "agent_llm_call"; pluginId: string }
-  | { type: "agent_tool_call"; pluginId: string; tool: string }
   | { type: "error"; message: string; fatal: boolean };
 
 // ---------------------------------------------------------------------------
@@ -582,11 +586,7 @@ export type ClientMessage =
   | { type: "terminal_start"; cols: number; rows: number }
   | { type: "terminal_input"; data: string }
   | { type: "terminal_resize"; cols: number; rows: number }
-  | { type: "terminal_stop" }
-  /** Chapter 23's explicit trigger only - drives the real, separately-mounted
-   * inner agent-loop's first turn. Never fired by any other chip/action, so
-   * no real LLM call ever happens just from clicking through chapters. */
-  | { type: "run_inner_agent"; task: string };
+  | { type: "terminal_stop" };
 
 // ---------------------------------------------------------------------------
 // Archives: a real, persistent, on-disk bundle of BOTH a session's workspace

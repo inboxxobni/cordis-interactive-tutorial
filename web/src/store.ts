@@ -9,6 +9,13 @@ export interface PluginNode {
   state: FiberState;
   hasInject: boolean;
   inject: string[];
+  /** Real but NOT `inject`-declared service reads (ctx.get(), not a hard
+   * dependency Cordis tracks structurally) - populated from real
+   * `service_inject` events a plugin explicitly reports at its own real
+   * ctx.get() call site (Cordis has no generic hook for this, same reason
+   * ctx.effect()/ctx.on() need reportEffect/reportListen). Drawn as a
+   * distinct, lighter edge from a hard `inject` one. */
+  softInject: string[];
   sourcePath?: string;
 }
 
@@ -94,11 +101,12 @@ interface State {
   terminalShell: string | null;
   terminalChunk: { seq: number; data: string } | null;
 
-  // Volume 2's inner agent-loop (chapters 17-23) - real edge id
-  // (`${consumerId}->${providerId}:${service}`, matching PluginGraph's own
-  // ids) to flash briefly when a real agent_llm_call/agent_tool_call event
-  // arrives, plus the explicit trigger for chapter 23's one real turn.
-  activeEdgeId: string | null;
+  // Real pluginId (the 'agentLoop' service's current provider) to pulse
+  // briefly on canvas. Best-effort: set only when a real event_emit's
+  // eventName starts with "agent-workspace/" - a convention this
+  // tutorial's system prompt suggests to the connected agent for its own
+  // agent-loop.mjs, not something every build will emit.
+  activePulseId: string | null;
 
   connect: () => void;
   runChapter: (id: ChapterId) => void;
@@ -126,8 +134,7 @@ interface State {
   sendTerminalInput: (data: string) => void;
   resizeTerminal: (cols: number, rows: number) => void;
   stopTerminal: () => void;
-  clearActiveEdge: () => void;
-  runInnerAgent: (task: string) => void;
+  clearActivePulse: () => void;
 }
 
 const CONFIGS_KEY = "cordis-tutorial:provider-configs";
@@ -281,10 +288,6 @@ function describe(event: TraceEvent): string {
       return "";
     case "terminal_exit":
       return `terminal exited (code ${event.exitCode})`;
-    case "agent_llm_call":
-      return `${event.pluginId}: calling llm`;
-    case "agent_tool_call":
-      return `${event.pluginId}: calling tool "${event.tool}"`;
     case "error":
       return `error: ${event.message}`;
   }
@@ -355,7 +358,7 @@ export const useStore = create<State>((set, get) => ({
   terminalShell: null,
   terminalChunk: null,
 
-  activeEdgeId: null,
+  activePulseId: null,
 
   connect: () => {
     if (socket) return;
@@ -478,13 +481,18 @@ export const useStore = create<State>((set, get) => ({
       } else if (event.type === "plugin_register") {
         next.plugins = {
           ...state.plugins,
-          [event.pluginId]: { id: event.pluginId, name: event.name, state: "PENDING", hasInject: event.hasInject, inject: event.inject, sourcePath: event.sourcePath },
+          [event.pluginId]: { id: event.pluginId, name: event.name, state: "PENDING", hasInject: event.hasInject, inject: event.inject, softInject: [], sourcePath: event.sourcePath },
         };
       } else if (event.type === "fiber_state_change") {
         const existing = state.plugins[event.pluginId];
         if (existing) next.plugins = { ...state.plugins, [event.pluginId]: { ...existing, state: event.to } };
       } else if (event.type === "service_provide") {
         next.serviceProviders = { ...state.serviceProviders, [event.serviceName]: event.pluginId };
+      } else if (event.type === "service_inject") {
+        const existing = state.plugins[event.pluginId];
+        if (existing && event.satisfied && !existing.softInject.includes(event.serviceName)) {
+          next.plugins = { ...state.plugins, [event.pluginId]: { ...existing, softInject: [...existing.softInject, event.serviceName] } };
+        }
       } else if (event.type === "workspace_files") {
         next.workspaceFiles = event.files;
       } else if (event.type === "workspace_reset") {
@@ -534,12 +542,19 @@ export const useStore = create<State>((set, get) => ({
         next.terminalChunk = { seq: (state.terminalChunk?.seq ?? 0) + 1, data: event.data };
       } else if (event.type === "terminal_exit") {
         next.terminalRunning = false;
-      } else if (event.type === "agent_llm_call") {
-        const target = state.serviceProviders["llm"];
-        if (target) next.activeEdgeId = `${event.pluginId}->${target}:llm`;
-      } else if (event.type === "agent_tool_call") {
-        const target = state.serviceProviders["tools"];
-        if (target) next.activeEdgeId = `${event.pluginId}->${target}:tools`;
+      } else if (event.type === "event_emit") {
+        // Best-effort activity pulse: the connected agent's own
+        // agent-loop.mjs (Volume 2) has no privileged emit() access - it
+        // only ever gets `ctx`, so this relies on the ordinary, already-real
+        // ctx.emit() a workspace plugin can call itself, observed through
+        // the same generic internal/dispatch hook every event already
+        // flows through. internal/dispatch doesn't reliably expose WHICH
+        // fiber emitted it, so this pulses the whole agentLoop node rather
+        // than guessing a specific edge - real, but coarser by necessity.
+        if (event.eventName.startsWith("agent-workspace/")) {
+          const pluginId = state.serviceProviders["agentLoop"];
+          if (pluginId) next.activePulseId = pluginId;
+        }
       } else if (event.type === "error") {
         next.agentRunning = false;
         next.testing = false;
@@ -642,9 +657,5 @@ export const useStore = create<State>((set, get) => ({
     socket?.send({ type: "terminal_stop" });
   },
 
-  clearActiveEdge: () => set({ activeEdgeId: null }),
-
-  runInnerAgent: (task) => {
-    socket?.send({ type: "run_inner_agent", task });
-  },
+  clearActivePulse: () => set({ activePulseId: null }),
 }));

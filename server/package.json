@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx watch --exclude '../workspace/**' --exclude '../.archives/**' src/index.ts",
     "start": "tsx src/index.ts",
     "type-check": "tsc --noEmit",
     "postinstall": "node scripts/fix-node-pty-permissions.mjs"

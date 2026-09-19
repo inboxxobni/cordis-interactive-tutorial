@@ -1,17 +1,17 @@
 /**
- * Chapter 17: The loop. Mounts the real agentLoop Service alone - watch its
- * fiber register and stay PENDING: `static inject = ['tools', 'llm',
- * 'systemPrompt']`, none of which exist yet. Later chapters mount them one
- * at a time; this fiber flips to ACTIVE for real in chapter 22, without
- * this chapter's own code changing at all.
+ * Chapter 17: The loop. No auto-mount - this volume's whole point is that
+ * YOU (via the connected agent, right pane) write agent-loop.mjs into the
+ * real workspace and mount it for real, the same write_file/mount_plugin
+ * mechanism every earlier chapter already uses. See the Agent console's
+ * suggestion chip and Theory.tsx for the real shape to build.
  */
 import type { Chapter } from './types.js'
-import { composeAgentHarness } from './agent-harness/compose.js'
 
 export const chapter: Chapter = {
   id: '17-the-loop',
   title: 'The loop',
-  async run(instr) {
-    return composeAgentHarness(instr, {})
+  async run({ emit }) {
+    emit({ type: 'log', pluginId: null, message: 'Nothing auto-mounts here - ask the connected agent to build agent-loop.mjs (see the suggestion chip).' })
+    return () => {}
   },
 }

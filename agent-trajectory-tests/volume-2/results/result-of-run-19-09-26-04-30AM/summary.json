@@ -1,0 +1,170 @@
+{
+  "runFolder": "result-of-run-19-09-26-04-30AM",
+  "runAt": "2026-09-19T02:30:00.647Z",
+  "provider": "deepseek",
+  "model": "deepseek-flash",
+  "baseURL": "https://api.deepseek.com/v1",
+  "chapters": [
+    {
+      "chapter": "16-what-is-an-agent",
+      "goalDescription": "the agent's final turn produces a non-empty assistant_message",
+      "goalPassed": true,
+      "goalDetails": "A chat UI just ships text back and forth: you type, the model replies, and every turn starts from zero. A coding agent is a loop wrapped around that model — it ",
+      "tokens": 2608,
+      "steps": 1,
+      "wallMs": 1926,
+      "usage": {
+        "llmCalls": 1,
+        "inputTokens": 2438,
+        "outputTokens": 170,
+        "cacheHitTokens": 2304,
+        "cacheMissTokens": 134,
+        "cacheHitRate": 0.9450369155045119
+      }
+    },
+    {
+      "chapter": "17-the-loop",
+      "goalDescription": "a workspace file matching /agent-loop\\.mjs$/ is written AND the fiber matching /agent-loop/ stays PENDING (never ACTIVE)",
+      "goalPassed": false,
+      "goalDetails": "[pass] a workspace file matching /agent-loop\\.mjs$/ is written: agent-loop.mjs (edit) | [fail] the fiber matching /agent-loop/ stays PENDING (never ACTIVE): a matching fiber reached ACTIVE (expected it to stay PENDING)",
+      "tokens": 45093,
+      "steps": 7,
+      "wallMs": 15062,
+      "usage": {
+        "llmCalls": 7,
+        "inputTokens": 43123,
+        "outputTokens": 1970,
+        "cacheHitTokens": 38912,
+        "cacheMissTokens": 4211,
+        "cacheHitRate": 0.9023490944507572
+      }
+    },
+    {
+      "chapter": "18-tools",
+      "goalDescription": "a workspace file matching /tools\\.mjs$/ is written",
+      "goalPassed": true,
+      "goalDetails": "tools.mjs present in final workspace (no file_changed event captured this run)",
+      "tokens": 34421,
+      "steps": 4,
+      "wallMs": 8124,
+      "usage": {
+        "llmCalls": 4,
+        "inputTokens": 33499,
+        "outputTokens": 922,
+        "cacheHitTokens": 27520,
+        "cacheMissTokens": 5979,
+        "cacheHitRate": 0.8215170602107525
+      }
+    },
+    {
+      "chapter": "19-context-window",
+      "goalDescription": "a workspace file matching /context-window\\.mjs$/ is written",
+      "goalPassed": true,
+      "goalDetails": "context-window.mjs present in final workspace (no file_changed event captured this run)",
+      "tokens": 41504,
+      "steps": 4,
+      "wallMs": 7511,
+      "usage": {
+        "llmCalls": 4,
+        "inputTokens": 40772,
+        "outputTokens": 732,
+        "cacheHitTokens": 37376,
+        "cacheMissTokens": 3396,
+        "cacheHitRate": 0.916707544393211
+      }
+    },
+    {
+      "chapter": "20-cache-and-compact",
+      "goalDescription": "a workspace file matching /compaction\\.mjs$/ is written",
+      "goalPassed": true,
+      "goalDetails": "compaction.mjs present in final workspace (no file_changed event captured this run)",
+      "tokens": 49864,
+      "steps": 4,
+      "wallMs": 13117,
+      "usage": {
+        "llmCalls": 4,
+        "inputTokens": 48152,
+        "outputTokens": 1712,
+        "cacheHitTokens": 45056,
+        "cacheMissTokens": 3096,
+        "cacheHitRate": 0.9357036052500415
+      }
+    },
+    {
+      "chapter": "21-system-prompt",
+      "goalDescription": "a workspace file matching /system-prompt\\.mjs$/ is written",
+      "goalPassed": true,
+      "goalDetails": "system-prompt.mjs present in final workspace (no file_changed event captured this run)",
+      "tokens": 96008,
+      "steps": 7,
+      "wallMs": 20294,
+      "usage": {
+        "llmCalls": 7,
+        "inputTokens": 94174,
+        "outputTokens": 1834,
+        "cacheHitTokens": 91136,
+        "cacheMissTokens": 3038,
+        "cacheHitRate": 0.9677405653365048
+      }
+    },
+    {
+      "chapter": "22-providers",
+      "goalDescription": "agentLoop's fiber flips from PENDING to ACTIVE once llm.mjs is mounted",
+      "goalPassed": true,
+      "goalDetails": "agentLoop reached ACTIVE (ACTIVE->UNLOADING, UNLOADING->PENDING, PENDING->LOADING, LOADING->ACTIVE)",
+      "tokens": 156890,
+      "steps": 9,
+      "wallMs": 30989,
+      "usage": {
+        "llmCalls": 9,
+        "inputTokens": 152374,
+        "outputTokens": 4516,
+        "cacheHitTokens": 148736,
+        "cacheMissTokens": 3638,
+        "cacheHitRate": 0.9761245356819405
+      }
+    },
+    {
+      "chapter": "23-the-harness",
+      "goalDescription": "tool matching \"run_workspace_agent_turn\" runs without error",
+      "goalPassed": true,
+      "goalDetails": "run_workspace_agent_turn -> The workspace agent finished its turn. Check the workspace files and the live trace for what it actually did.",
+      "tokens": 92771,
+      "steps": 5,
+      "wallMs": 15639,
+      "usage": {
+        "llmCalls": 5,
+        "inputTokens": 91460,
+        "outputTokens": 1311,
+        "cacheHitTokens": 86784,
+        "cacheMissTokens": 4676,
+        "cacheHitRate": 0.9488738246227859
+      }
+    },
+    {
+      "chapter": "24-this-app",
+      "goalDescription": "the agent's final turn produces a non-empty assistant_message",
+      "goalPassed": true,
+      "goalDetails": "All six read back from disk, and all six are mounted and ACTIVE right now. But first, a correction to the premise:\n\n**I did not write six files.** I wrote two. ",
+      "tokens": 69517,
+      "steps": 3,
+      "wallMs": 10497,
+      "usage": {
+        "llmCalls": 3,
+        "inputTokens": 67999,
+        "outputTokens": 1518,
+        "cacheHitTokens": 45184,
+        "cacheMissTokens": 22815,
+        "cacheHitRate": 0.6644803600052942
+      }
+    }
+  ],
+  "totalUsage": {
+    "llmCalls": 44,
+    "inputTokens": 573991,
+    "outputTokens": 14685,
+    "cacheHitTokens": 523008,
+    "cacheMissTokens": 50983,
+    "cacheHitRate": 0.9111780498300496
+  }
+}

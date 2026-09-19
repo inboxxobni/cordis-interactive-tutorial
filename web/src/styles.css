@@ -263,8 +263,6 @@ button { font-family: inherit; }
 }
 .suggestion-chips button:hover:not(:disabled) { border-color: var(--primary); color: var(--text); }
 .suggestion-chips button:disabled { opacity: 0.4; cursor: not-allowed; }
-.suggestion-chips .suggestion-inner-agent { border-color: var(--live); color: var(--live); font-weight: 600; }
-.suggestion-chips .suggestion-inner-agent:hover:not(:disabled) { background: color-mix(in oklab, var(--live) 14%, transparent); }
 .suggestion-step { color: var(--primary); font-family: var(--mono); font-weight: 700; flex-shrink: 0; }
 .suggestion-hint { padding: 0 10px; font-size: 10px; }
 
@@ -304,8 +302,7 @@ button { font-family: inherit; }
 .plugin-graph .react-flow__edge-text { fill: var(--text-dimmer); font: 500 9px var(--mono); }
 .plugin-graph .react-flow__edge-textbg { fill: var(--canvas); }
 .plugin-graph .react-flow__handle { background: var(--steel); border: 1px solid var(--border); width: 6px; height: 6px; }
-.plugin-graph .edge-flash .react-flow__edge-path { stroke: var(--primary) !important; stroke-width: 3 !important; filter: drop-shadow(0 0 4px var(--primary)); }
-.plugin-graph .edge-flash .react-flow__edge-text { fill: var(--primary); font-weight: 700; }
+.plugin-graph .node-pulse { box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 60%, transparent), 0 8px 20px color-mix(in oklab, var(--foreground) 8%, transparent) !important; }
 
 .plugin-node {
   border-radius: 5px; padding: 9px 12px;

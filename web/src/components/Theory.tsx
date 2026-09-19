@@ -652,6 +652,12 @@ export function Theory({ chapter }: { chapter: ChapterId | null }) {
             This tutorial's <code>mount_plugin</code> fills the gap neither package covers: mount a plugin for{" "}
             <em>this session only</em>, no persistent config write, gone if you don't graduate it.
           </p>
+          <p className="muted">
+            This tutorial's own agent now has a real, working version of the read-only half: ask it about any
+            plugin's real state and it can call <code>cordis_inspect_list</code>/<code>cordis_inspect_query</code>{" "}
+            for real, walking the live <code>ctx.registry</code> (chapter 6's own diagnostic API) - not a guess from
+            your workspace file list, which can't see a compiled chapter's plugins at all.
+          </p>
         </div>
       );
     case "16-what-is-an-agent":
@@ -696,16 +702,17 @@ export function Theory({ chapter }: { chapter: ChapterId | null }) {
             calls the model again immediately.
           </p>
           <p>
-            This chapter mounts that loop for real, as a Cordis class plugin:
+            This is where you start building for real: ask the connected agent (right pane) to write{" "}
+            <code>agent-loop.mjs</code> - a real Cordis class plugin implementing that loop:
           </p>
           <pre className="theory-code">
             <code>{`class AgentLoop extends Service {\n  static inject = ['tools', 'llm', 'systemPrompt']\n  constructor(ctx) { super(ctx, 'agentLoop') }\n  async runTurn(task) { /* the loop above, for real */ }\n}`}</code>
           </pre>
           <p>
-            Watch the canvas: this fiber registers and stays <code>PENDING</code>, exactly like chapter 3's consumer
-            with an unmet <code>inject</code> - because none of <code>tools</code>, <code>llm</code>, or{" "}
-            <code>systemPrompt</code> exist yet. Nothing about this class changes between now and chapter 22; only
-            what's mounted alongside it does.
+            Have it <code>mount_plugin</code> that file right away. Watch the canvas: this fiber registers and stays{" "}
+            <code>PENDING</code>, exactly like chapter 3's consumer with an unmet <code>inject</code> - because none
+            of <code>tools</code>, <code>llm</code>, or <code>systemPrompt</code> exist yet. You won't touch this
+            file again; the next five chapters each add one real dependency until it flips ACTIVE in chapter 22.
           </p>
           <p className="muted">
             Not a loose analogy: the real ACRYL CLI (<code>apps/acryl-cli/package.json</code>) depends on{" "}
@@ -720,19 +727,19 @@ export function Theory({ chapter }: { chapter: ChapterId | null }) {
         <div>
           <p>
             An agent reaches outside its own context window through <strong>tools</strong>. Each one needs four
-            things: a name, a description, an input schema, and an implementation. This chapter mounts a real{" "}
-            <code>tools</code> service exposing the tutorial's own already-working{" "}
-            <code>list_files</code>/<code>read_file</code>/<code>write_file</code>/<code>edit_file</code> - the same
-            four real tools (minus <code>mount_plugin</code>, which is specific to this tutorial's own outer agent,
-            not a from-scratch minimal harness) - registered the real <code>defineTool()</code>-shaped way chapter 9
-            already taught:
+            things: a name, a description, an input schema, and an implementation. Ask the agent to write{" "}
+            <code>tools.mjs</code>: a plugin providing a real <code>tools</code> service with the same four real file
+            operations this tutorial's own outer agent uses (list/read/write/edit, using plain{" "}
+            <code>node:fs/promises</code> - a workspace-mounted plugin only ever gets <code>ctx</code>, nothing
+            private this tutorial's own server has) - registered the real <code>defineTool()</code>-shaped way
+            chapter 9 already taught:
           </p>
           <pre className="theory-code">
-            <code>{`ctx.provide('tools', {\n  definitions: [/* one ToolDefinition per real tool */],\n  async execute(name, input) {\n    // dispatches straight into the real, shared workspace\n  },\n})`}</code>
+            <code>{`ctx.provide('tools', {\n  definitions: [/* one ToolDefinition per real tool */],\n  async execute(name, input) {\n    // real fs.readFile/writeFile, resolved relative to this plugin's own file\n  },\n})`}</code>
           </pre>
           <p>
-            Watch agentLoop's fiber: still <code>PENDING</code> - one dependency down, two to go (
-            <code>llm</code>, <code>systemPrompt</code>).
+            Have it <code>mount_plugin</code> that file. Watch agentLoop's fiber: still <code>PENDING</code> - one
+            dependency down, two to go (<code>llm</code>, <code>systemPrompt</code>).
           </p>
         </div>
       );
@@ -746,9 +753,9 @@ export function Theory({ chapter }: { chapter: ChapterId | null }) {
             for caching, and compacting once the window fills (next chapter).
           </p>
           <p>
-            This chapter mounts a real <code>contextWindow</code> service wrapping two pure functions this repo
-            already had (ported from aicodingagent-ts, already powering the tutorial's own outer agent) - not new
-            code, a new real dependency surface for them:
+            Ask the agent to write <code>context-window.mjs</code>: a plugin providing a real{" "}
+            <code>contextWindow</code> service wrapping the same two pure functions already powering this tutorial's
+            own outer agent (ported from aicodingagent-ts) - not new logic, a new real dependency surface for it:
           </p>
           <pre className="theory-code">
             <code>{`ctx.provide('contextWindow', {\n  estimateTokens(messages),        // rough token count, ~4 chars/token\n  sharedPrefixLength(prev, cur),   // how much of the request matches the last one, byte-for-byte\n})`}</code>
@@ -763,10 +770,9 @@ export function Theory({ chapter }: { chapter: ChapterId | null }) {
       return (
         <div>
           <p>
-            Context windows are finite. This chapter mounts a real <code>compaction</code> plugin that replaces older
-            turns with one deterministic summary once the estimated token count crosses a threshold - the same
-            algorithm aicodingagent-ts's own <code>/compact</code> command uses, ported here for the first time in
-            this repo:
+            Context windows are finite. Ask the agent to write <code>compaction.mjs</code>: a plugin that replaces
+            older turns with one deterministic summary once the estimated token count crosses a threshold - the same
+            algorithm aicodingagent-ts's own <code>/compact</code> command uses:
           </p>
           <pre className="theory-code">
             <code>{`compact(messages, keepRecent = 6):\n  keep the system prompt\n  keep the 6 newest messages\n  summarize everything older into one message\n  return [system, summary, ...recent]`}</code>
@@ -787,15 +793,17 @@ export function Theory({ chapter }: { chapter: ChapterId | null }) {
         <div>
           <p>
             The system prompt is the stable prefix telling the model what it is and the rules of the sandbox - sent
-            first, every turn. This chapter mounts a real <code>systemPrompt</code> service, reusing the tutorial's
-            own already-working <code>buildSystemPrompt()</code>/<code>buildWorkspaceSummary()</code>:
+            first, every turn. Ask the agent to write <code>system-prompt.mjs</code>: a plugin providing a real{" "}
+            <code>systemPrompt</code> service that assembles a prompt string from the real tool list and the real
+            file listing in this same directory:
           </p>
           <pre className="theory-code">
-            <code>{`ctx.provide('systemPrompt', {\n  async assemble() {\n    const tools = ctx.get('tools').definitions\n    const files = await workspace.list()\n    return buildSystemPrompt(buildWorkspaceSummary(files), tools)\n  },\n})`}</code>
+            <code>{`ctx.provide('systemPrompt', {\n  async assemble() {\n    const tools = ctx.tools.definitions\n    const files = await readdir(dir)   // dir = this plugin's own directory\n    return \`Your tools:\\n\${tools.map(t => t.name).join('\\n')}\\n\\nFiles:\\n\${files.join('\\n')}\`\n  },\n})`}</code>
           </pre>
           <p>
-            Watch agentLoop's fiber one more time: still <code>PENDING</code> - every dependency it will ever need is
-            now mounted except one. Next chapter is the payoff.
+            Have it <code>mount_plugin</code> that file. Watch agentLoop's fiber one more time: still{" "}
+            <code>PENDING</code> - every dependency it will ever need is now mounted except one. Next chapter is the
+            payoff.
           </p>
         </div>
       );
@@ -804,18 +812,22 @@ export function Theory({ chapter }: { chapter: ChapterId | null }) {
         <div>
           <p>
             The agent loop is provider-agnostic - DeepSeek, OpenAI, Claude, and the rest all support tool calling;
-            they differ only in wire format. This chapter mounts a real <code>llm</code> service that doesn't
-            reimplement any of that: it wraps whatever provider is already configured in this tutorial's own
-            Settings panel, via the exact same <code>createProvider()</code> the outer agent already uses:
+            they differ only in wire format. Ask the agent to write <code>llm.mjs</code>: a plugin providing a real{" "}
+            <code>llm</code> service that makes a real HTTP call via <code>fetch</code> to whichever provider is
+            already configured in this tutorial's own Settings panel - read from{" "}
+            <code>process.env.CORDIS_AGENT_PROVIDER</code>/<code>_MODEL</code>/<code>_API_KEY</code>/
+            <code>_BASE_URL</code> (bridged there the moment you configure a provider, so the raw key never has to
+            appear in the agent's own transcript):
           </p>
           <pre className="theory-code">
-            <code>{`ctx.provide('llm', {\n  async chat(messages, tools) {\n    const provider = createProvider(session.providerConfig)  // real DeepSeek/OpenAI/Anthropic/etc\n    return provider.chat(messages, tools)\n  },\n})`}</code>
+            <code>{`ctx.provide('llm', {\n  async chat(messages, tools) {\n    const res = await fetch(\`\${process.env.CORDIS_AGENT_BASE_URL}/chat/completions\`, {\n      method: 'POST',\n      headers: { authorization: \`Bearer \${process.env.CORDIS_AGENT_API_KEY}\`, 'content-type': 'application/json' },\n      body: JSON.stringify({ model: process.env.CORDIS_AGENT_MODEL, messages, tools }),\n    })\n    return res.json()   // shaped into { text, toolCalls, ... } for agentLoop\n  },\n})`}</code>
           </pre>
           <p>
-            <code>agentLoop</code>'s <code>static inject = ['tools', 'llm', 'systemPrompt']</code> is now fully
-            satisfied for the first time. Watch the canvas: the fiber that has sat <code>PENDING</code> since chapter
-            17 flips to <code>ACTIVE</code> - the exact same PENDING-until-ready behavior chapter 3 first taught,
-            just with five real chapters' worth of real dependencies behind it this time.
+            Have it <code>mount_plugin</code> that file. <code>agentLoop</code>'s{" "}
+            <code>static inject = ['tools', 'llm', 'systemPrompt']</code> is now fully satisfied for the first time.
+            Watch the canvas: the fiber that has sat <code>PENDING</code> since chapter 17 flips to{" "}
+            <code>ACTIVE</code> - the exact same PENDING-until-ready behavior chapter 3 first taught, just with five
+            real chapters' worth of real dependencies behind it this time, built by the agent, not pre-seeded.
           </p>
         </div>
       );
@@ -825,16 +837,18 @@ export function Theory({ chapter }: { chapter: ChapterId | null }) {
           <p>
             The harness is everything around the model - once the loop works, the hard parts are all harness
             engineering: live repo context, prompt caching, structured tools with real validation, context reduction,
-            and (in a production harness) session memory and subagents. This chapter mounts the exact same full
-            composition as chapter 22 - inert, zero LLM spend, just the complete graph sitting <code>ACTIVE</code> on
-            canvas.
+            and (in a production harness) session memory and subagents. By now all six files exist and the full
+            composition sits <code>ACTIVE</code> on canvas - inert, zero LLM spend, until you actually ask it to do
+            something.
           </p>
           <p>
-            The one new thing here is the Agent console's suggestion chip, styled differently from every other one
-            in this tutorial: it's the deliberate, explicit trigger for a real turn through the agent-loop you just
-            watched come together - a real LLM call, real tool calls against this same shared workspace, real events
-            all the way through. Click it, then watch the canvas: the edge to <code>llm</code> and the edge to{" "}
-            <code>tools</code> each flash the instant a real call actually crosses them.
+            This chapter's suggestion chip is different from every other one in this tutorial: it asks the agent to
+            call a new tool, <code>run_workspace_agent_turn</code>, which drives one real turn through the{" "}
+            <code>agentLoop</code> you just built - a real LLM call, real tool calls against this same shared
+            workspace. It's the only chip here that spends a real, billed LLM call just from being clicked. If{" "}
+            <code>agent-loop.mjs</code> also calls <code>ctx.emit('agent-workspace/llm-call')</code>/
+            <code>'agent-workspace/tool-call'</code> at the right moments, the canvas pulses the node live as it
+            happens - a nice touch, not a requirement (the agent's own generated code varies run to run).
           </p>
         </div>
       );
@@ -842,36 +856,35 @@ export function Theory({ chapter }: { chapter: ChapterId | null }) {
       return (
         <div>
           <p>
-            How this volume is actually built, file by file - the same honesty this tutorial's own "9 · this app"
-            source (aicodingagent-ts) already models:
+            How this volume is actually built - the same honesty this tutorial's own "9 · this app" source
+            (aicodingagent-ts) already models: nothing here was pre-seeded for you. Chapters 17-22 each asked the
+            connected agent to write one real file, using <code>write_file</code> and <code>mount_plugin</code> -
+            the exact same tools chapters 1-15 already use:
           </p>
           <ul>
-            <li>
-              <code>server/src/chapters/agent-harness/plugins/*.ts</code> - the five real Cordis plugins: tools, llm,
-              system-prompt, context-window, compaction, plus agent-loop.ts (the Service class itself).
-            </li>
-            <li>
-              <code>server/src/chapters/agent-harness/compose.ts</code> - the shared composition helper every chapter
-              17-23 calls, mounting the cumulative subset that chapter's theory covers.
-            </li>
-            <li>
-              <code>server/src/chapters/16-what-is-an-agent.ts</code> through <code>24-this-app.ts</code> - thin
-              chapter wrappers, the same <code>{"{ id, title, run(instr) }"}</code> shape every chapter in this
-              tutorial already uses.
-            </li>
+            <li><code>workspace/agent-loop.mjs</code> - the <code>agentLoop</code> Service (chapter 17).</li>
+            <li><code>workspace/tools.mjs</code> - the <code>tools</code> service (chapter 18).</li>
+            <li><code>workspace/context-window.mjs</code> - the <code>contextWindow</code> service (chapter 19).</li>
+            <li><code>workspace/compaction.mjs</code> - the <code>compaction</code> plugin (chapter 20).</li>
+            <li><code>workspace/system-prompt.mjs</code> - the <code>systemPrompt</code> service (chapter 21).</li>
+            <li><code>workspace/llm.mjs</code> - the <code>llm</code> service (chapter 22).</li>
           </ul>
           <p>
-            Nothing about the chapter-registration mechanism changed to add this volume - it's the same real,
-            generic <code>CHAPTER_RUNNERS</code> map, the same source-viewing route, the same live Context. The
-            agent you just built is real and, like everything else in this project's <code>workspace/</code>{" "}
-            directory, still real once you leave this tutorial.
+            Ask the agent to <code>read_file</code> each one back now and confirm they're really there - that's this
+            chapter's suggestion. Nothing about the chapter-registration mechanism changed to add this volume: same
+            real <code>CHAPTER_RUNNERS</code> map, same source-viewing route, same live Context - chapters 16-24
+            just stopped mounting anything themselves, since the point was always for you to build it. The agent you
+            built is real, sitting in this project's real <code>workspace/</code> directory: copy it anywhere,{" "}
+            <code>pnpm install &amp;&amp; pnpm dev</code>, and it's a real, standalone, running coding agent - the
+            same portable-workspace story every other chapter's files already share.
           </p>
           <p className="muted">
             And the shape isn't invented: the real ACRYL project (<code>apps/acryl-cli</code>,{" "}
             <code>runtime/acryl-control</code>) depends directly on DeepSeek Harness's own real{" "}
             <code>@deepseek-ai/dsh-agent-loop</code>, <code>dsh-llm</code>, and <code>dsh-tools</code> packages - the
-            exact same production code this volume's five plugins are a teaching-scale reimplementation of, not a
-            different pattern dressed up to look similar.
+            exact same production code the six files above are a teaching-scale reimplementation of. This is
+            explicitly a minimal rehearsal for that real capability: directing an agent to build its own Cordis
+            plugins for its own environment.
           </p>
         </div>
       );

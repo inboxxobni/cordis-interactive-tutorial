@@ -16,7 +16,7 @@ const workspace = new Workspace(dir)
 await workspace.ensure()
 
 const events: TraceEvent[] = []
-const instr = createInstrumentedContext((e) => events.push(e), { workspace, getProviderConfig: () => null })
+const instr = createInstrumentedContext((e) => events.push(e))
 
 async function main() {
   await workspace.writeFile(

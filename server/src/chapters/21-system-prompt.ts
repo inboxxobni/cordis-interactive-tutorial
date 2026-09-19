@@ -1,14 +1,14 @@
 /**
- * Chapter 21: System prompt. Adds the real systemPrompt service - agentLoop
- * is now only missing one dependency: llm.
+ * Chapter 21: System prompt. No auto-mount - ask the connected agent to
+ * build system-prompt.mjs into the real workspace and mount it for real.
  */
 import type { Chapter } from './types.js'
-import { composeAgentHarness } from './agent-harness/compose.js'
 
 export const chapter: Chapter = {
   id: '21-system-prompt',
   title: 'System prompt',
-  async run(instr) {
-    return composeAgentHarness(instr, { tools: true, contextWindow: true, compaction: true, systemPrompt: true })
+  async run({ emit }) {
+    emit({ type: 'log', pluginId: null, message: 'Nothing auto-mounts here - ask the connected agent to build system-prompt.mjs (see the suggestion chip).' })
+    return () => {}
   },
 }

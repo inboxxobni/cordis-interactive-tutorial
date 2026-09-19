@@ -185,7 +185,7 @@ wss.on('connection', (ws) => {
       ws,
       id,
       workspace,
-      instr: createInstrumentedContext(emit, { workspace, getProviderConfig: () => session?.providerConfig ?? null }),
+      instr: createInstrumentedContext(emit),
       tools: buildTools(),
       agent: null,
       control: new AgentControl(),
@@ -263,6 +263,18 @@ function handleMessage(session: Session, raw: unknown): void {
           apiKey: msg.apiKey,
           baseURL: msg.baseURL || PROVIDERS.find((p) => p.id === msg.provider)?.baseURL,
         }
+        // Volume 2's llm.mjs (workspace-authored, chapter 22) reads these -
+        // a completely standard, portable Node convention (matches chapter
+        // 5's own !!js process.env.X config example) that lets the agent
+        // write and reason about a placeholder env var name without ever
+        // putting the real secret in its own transcript. Process-global, so
+        // two concurrent sessions on one server share one active provider -
+        // an acceptable limitation for this local, single-user teaching
+        // tool, not a production multi-tenant concern.
+        process.env.CORDIS_AGENT_PROVIDER = session.providerConfig.provider
+        process.env.CORDIS_AGENT_MODEL = session.providerConfig.model
+        process.env.CORDIS_AGENT_API_KEY = session.providerConfig.apiKey
+        process.env.CORDIS_AGENT_BASE_URL = session.providerConfig.baseURL ?? ''
         return
       }
 
@@ -315,19 +327,6 @@ function handleMessage(session: Session, raw: unknown): void {
         session.agent.runTurn(msg.message)
           .catch((err) => send(ws, { type: 'error', message: String(err), fatal: false }))
           .finally(() => { session.agentRunning = false })
-        return
-      }
-
-      case 'run_inner_agent': {
-        // Volume 2's chapter 23 only - the explicit, deliberate trigger for
-        // the real agent-loop it just composed. Never fires from any other
-        // action, so no chapter click ever spends a real LLM call on its own.
-        if (!session.instr.innerAgentLoop) {
-          send(ws, { type: 'error', message: 'No agent-loop is mounted yet - run chapter 23 first.', fatal: false })
-          return
-        }
-        session.instr.innerAgentLoop.runTurn(msg.task)
-          .catch((err) => send(ws, { type: 'error', message: String(err), fatal: false }))
         return
       }
 

@@ -74,8 +74,8 @@ const nodeTypes = { plugin: PluginNode };
 export function PluginGraph() {
   const plugins = useStore((s) => s.plugins);
   const serviceProviders = useStore((s) => s.serviceProviders);
-  const activeEdgeId = useStore((s) => s.activeEdgeId);
-  const clearActiveEdge = useStore((s) => s.clearActiveEdge);
+  const activePulseId = useStore((s) => s.activePulseId);
+  const clearActivePulse = useStore((s) => s.clearActivePulse);
   const [nodes, setNodes, onNodesChange] = useNodesState<Node<PluginNodeData>>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const rfInstance = useRef<ReactFlowInstance<Node<PluginNodeData>, Edge> | null>(null);
@@ -124,13 +124,26 @@ export function PluginGraph() {
     // really to the left.
     const positionOf = new Map(nextNodes.map((n) => [n.id, n.position]));
     setEdges(
-      list.flatMap((p) =>
-        p.inject.flatMap((service): Edge[] => {
+      list.flatMap((p) => {
+        // Hard `inject` (Cordis tracks this structurally - a fiber literally
+        // cannot reach ACTIVE without it) and soft `ctx.get()` reads (real,
+        // but not required - chapter 3's own "optional dependencies" lesson;
+        // see store.ts's service_inject handling for how these get reported
+        // at all, since Cordis has no generic hook for a bare ctx.get()).
+        // Drawing only the first kind left a real, functioning relationship
+        // (e.g. agentLoop actually reading contextWindow/compaction) with no
+        // edge at all - looking like an unrelated, disconnected plugin.
+        const deps = [
+          ...p.inject.map((service) => ({ service, required: true })),
+          ...p.softInject.filter((s) => !p.inject.includes(s)).map((service) => ({ service, required: false })),
+        ];
+        return deps.flatMap(({ service, required }): Edge[] => {
           const providerId = serviceProviders[service];
           if (!providerId || !ids.has(providerId)) return [];
           const from = positionOf.get(p.id);
           const to = positionOf.get(providerId);
           const sourceIsRightOfTarget = !!(from && to && from.x > to.x);
+          const color = required ? "var(--live)" : "var(--steel)";
           return [
             {
               id: `${p.id}->${providerId}:${service}`,
@@ -138,14 +151,14 @@ export function PluginGraph() {
               target: providerId,
               sourceHandle: sourceIsRightOfTarget ? "left-source" : "right-source",
               targetHandle: sourceIsRightOfTarget ? "right-target" : "left-target",
-              label: service,
-              animated: true,
-              style: { stroke: "var(--live)" },
-              markerEnd: { type: MarkerType.ArrowClosed, color: "var(--live)" },
+              label: required ? service : `${service}?`,
+              animated: required,
+              style: { stroke: color, strokeDasharray: required ? undefined : "3 3" },
+              markerEnd: { type: MarkerType.ArrowClosed, color },
             },
           ];
-        }),
-      ),
+        });
+      }),
     );
 
     if (hasNewNode) {
@@ -155,19 +168,22 @@ export function PluginGraph() {
     }
   }, [plugins, serviceProviders, setNodes, setEdges]);
 
-  // Volume 2's live data-flow moment (chapter 23): a real agent_llm_call/
-  // agent_tool_call event sets this to the matching edge's real id in the
-  // store; flash it briefly, then clear both the edge style and the store
-  // flag so the next real call can flash it again.
+  // The connected agent's own agent-loop.mjs (Volume 2) has no privileged
+  // emit() access, only `ctx` - so this real activity pulse is driven by an
+  // ordinary ctx.emit() call the agent's own generated code can genuinely
+  // make, observed through the same generic event_emit pipe every event
+  // already flows through (see store.ts). Pulses the node, not a specific
+  // edge - internal/dispatch doesn't reliably expose which fiber emitted
+  // an event, so attributing an exact edge would be a guess, not a fact.
   useEffect(() => {
-    if (!activeEdgeId) return;
-    setEdges((current) => current.map((e) => (e.id === activeEdgeId ? { ...e, className: "edge-flash" } : e)));
+    if (!activePulseId) return;
+    setNodes((current) => current.map((n) => (n.id === activePulseId ? { ...n, className: `${n.className ?? ""} node-pulse` } : n)));
     const timer = window.setTimeout(() => {
-      setEdges((current) => current.map((e) => (e.id === activeEdgeId ? { ...e, className: undefined } : e)));
-      clearActiveEdge();
+      setNodes((current) => current.map((n) => (n.id === activePulseId ? { ...n, className: (n.className ?? "").replace(" node-pulse", "") } : n)));
+      clearActivePulse();
     }, 600);
     return () => window.clearTimeout(timer);
-  }, [activeEdgeId, setEdges, clearActiveEdge]);
+  }, [activePulseId, setNodes, clearActivePulse]);
 
   if (Object.keys(plugins).length === 0) {
     return <div className="plugin-graph empty">Run a chapter, or ask the agent to write and mount a plugin, to see it appear here.</div>;

@@ -1,0 +1,21 @@
+{
+  "name": "@cordis-tutorial/agent-trajectory-tests",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Golden-trajectory tests for the suggestion-chip prompt chains: feed real prompt chains to a real LLM-backed agent over the tutorial server's own WebSocket protocol, record the full trajectory, score it against a verifiable goal, and compare against previous runs so the chips themselves can be iterated on.",
+  "scripts": {
+    "run": "tsx src/cli.ts",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@cordis-tutorial/shared": "workspace:*",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "@types/ws": "^8.5.13",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

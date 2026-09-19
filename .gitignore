@@ -155,3 +155,6 @@ vite.config.ts.timestamp-*
 
 # Real, on-disk archives (workspace files + paired history bundles)
 /.archives/
+
+# agent-trajectory-tests: a project-local API-key override, never committed
+agent-trajectory-tests/.env.deepseek.json

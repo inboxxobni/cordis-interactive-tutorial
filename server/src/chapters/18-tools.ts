@@ -1,15 +1,14 @@
 /**
- * Chapter 18: Tools. Adds the real tools service (4 real tools: list/read/
- * write/edit, the tutorial's own real ones, same shared workspace) alongside
- * agentLoop - still PENDING, still missing llm and systemPrompt.
+ * Chapter 18: Tools. No auto-mount - ask the connected agent to build
+ * tools.mjs into the real workspace and mount it for real.
  */
 import type { Chapter } from './types.js'
-import { composeAgentHarness } from './agent-harness/compose.js'
 
 export const chapter: Chapter = {
   id: '18-tools',
   title: 'Tools',
-  async run(instr) {
-    return composeAgentHarness(instr, { tools: true })
+  async run({ emit }) {
+    emit({ type: 'log', pluginId: null, message: 'Nothing auto-mounts here - ask the connected agent to build tools.mjs (see the suggestion chip).' })
+    return () => {}
   },
 }
